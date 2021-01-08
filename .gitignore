@@ -1,0 +1,14 @@
+# ignore hidden files/directories
+.classpath
+.project
+.settings
+target
+
+*.properties
+*.xml
+*.log
+activemq-data
+data
+hsqldb
+ignite
+logs

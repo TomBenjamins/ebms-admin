@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+	<div class="col-lg-offset-2 col-lg-10">
+		<span wicket:id="feedback"/>
+	</div>
+	<form class="form-horizontal" role="form" wicket:id="form">
+		<div class="form-group" wicket:id="cpaIdFeedback">
+			<label wicket:for="cpaId" class="col-lg-2 control-label"><wicket:label/></label>
+			<div class="col-lg-10">
+				<select class="form-control" wicket:id="cpaId"/>
+			</div>
+		</div>
+		<div class="form-group" wicket:id="fromPartyIdFeedback">
+			<label wicket:for="fromPartyId" class="col-lg-2 control-label"><wicket:label/></label>
+			<div class="col-lg-10">
+				<select class="form-control" wicket:id="fromPartyId"/>
+			</div>
+		</div>
+		<div class="form-group" wicket:id="fromRoleFeedback">
+			<label wicket:for="fromRole" class="col-lg-2 control-label"><wicket:label/></label>
+			<div class="col-lg-10">
+				<select class="form-control" wicket:id="fromRole"/>
+			</div>
+		</div>
+		<div class="form-group" wicket:id="toPartyIdFeedback">
+			<label wicket:for="toPartyId" class="col-lg-2 control-label"><wicket:label/></label>
+			<div class="col-lg-10">
+				<select class="form-control" wicket:id="toPartyId"/>
+			</div>
+		</div>
+		<div class="form-group" wicket:id="toRoleFeedback">
+			<label wicket:for="toRole" class="col-lg-2 control-label"><wicket:label/></label>
+			<div class="col-lg-10">
+				<select class="form-control" wicket:id="toRole"/>
+			</div>
+		</div>
+		<div class="form-group" wicket:id="serviceFeedback">
+			<label wicket:for="service" class="col-lg-2 control-label"><wicket:label/></label>
+			<div class="col-lg-10">
+				<select class="form-control" wicket:id="service"/>
+			</div>
+		</div>
+		<div class="form-group" wicket:id="actionFeedback">
+			<label wicket:for="action" class="col-lg-2 control-label"><wicket:label/></label>
+			<div class="col-lg-10">
+				<select class="form-control" wicket:id="action"/>
+			</div>
+		</div>
+		<div class="form-group">
+			<label wicket:for="conversationId" class="col-lg-2 control-label"><wicket:label/></label>
+			<div class="col-lg-10">
+				<input type="text" class="form-control" wicket:id="conversationId"/>
+			</div>
+		</div>
+		<div class="form-group">
+			<label wicket:for="messageId" class="col-lg-2 control-label"><wicket:label/></label>
+			<div class="col-lg-10">
+				<input type="text" class="form-control" wicket:id="messageId"/>
+			</div>
+		</div>
+		<div class="form-group">
+			<label wicket:for="refToMessageId" class="col-lg-2 control-label"><wicket:label/></label>
+			<div class="col-lg-10">
+				<input type="text" class="form-control" wicket:id="refToMessageId"/>
+			</div>
+		</div>
+		<div class="form-group" wicket:id="rawInputContainer">
+			<label wicket:for="rawInput" class="col-lg-2 control-label"><wicket:label/></label>
+			<div class="col-lg-10">
+				<input type="checkbox" wicket:id="rawInput" />
+			</div>
+		</div>
+		<wicket:container wicket:id="dataSources"/>
+		<div class="form-group">
+			<div class="col-lg-offset-2 col-lg-10">
+				<input type="submit" class="btn btn-default" wicket:id="send" wicket:message="value:cmd.send"/>
+				<input type="submit" class="btn btn-default" wicket:id="reset" wicket:message="value:cmd.reset"/>
+			</div>
+		</div>
+	</form>
+</wicket:extend>
+</body>
+</html>

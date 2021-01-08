@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+	<div class="col-lg-12">
+		<div class="row">
+			<div class="pull-left"><span wicket:id="navigator"/></div>
+			<div class="pull-right"><select class="form-control pull-right auto-width" wicket:id="maxItemsPerPage"/></div>
+		</div>
+	</div>
+	<div class="col-lg-12">
+		<div class="row">
+			<wicket:container wicket:id="messageFilter"/>
+		</div>
+	</div>
+	<div class="viewport">
+		<table class="table table-striped table-condensed">
+			<thead>
+				<tr>
+					<th><wicket:message key="lbl.messageId"/></th>
+					<th><wicket:message key="lbl.messageNr"/></th>
+					<th><wicket:message key="lbl.conversationId"/></th>
+					<th><wicket:message key="lbl.refToMessageId"/></th>
+					<th><wicket:message key="lbl.timestamp"/></th>
+					<th><wicket:message key="lbl.cpaId"/></th>
+					<th><wicket:message key="lbl.fromPartyId"/></th>
+					<th><wicket:message key="lbl.fromRole"/></th>
+					<th><wicket:message key="lbl.toPartyId"/></th>
+					<th><wicket:message key="lbl.toRole"/></th>
+					<th><wicket:message key="lbl.service"/></th>
+					<th><wicket:message key="lbl.action"/></th>
+					<th><wicket:message key="lbl.status"/></th>
+					<th><wicket:message key="lbl.statusTime"/></th>
+				</tr>
+			</thead>
+			<tbody wicket:id="container">
+				<tr wicket:id="messages">
+					<td><a href="#" wicket:id="view"><wicket:container wicket:id="messageId"/></a></td>
+					<td><wicket:container wicket:id="messageNr"/></td>
+					<td><a href="#" wicket:id="filterConversationId"><wicket:container wicket:id="conversationId"/></a></td>
+					<td><a href="#" wicket:id="viewRefToMessageId"><wicket:container wicket:id="refToMessageId"/></a></td>
+					<td><wicket:container wicket:id="timestamp"/></td>
+					<td><wicket:container wicket:id="cpaId"/></td>
+					<td><wicket:container wicket:id="fromPartyId"/></td>
+					<td><wicket:container wicket:id="fromRole"/></td>
+					<td><wicket:container wicket:id="toPartyId"/></td>
+					<td><wicket:container wicket:id="toRole"/></td>
+					<td><wicket:container wicket:id="service"/></td>
+					<td><wicket:container wicket:id="action"/></td>
+					<td><span wicket:id="status"/></td>
+					<td><wicket:container wicket:id="statusTime"/></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	<div>
+		<a class="btn btn-default" href="#" wicket:id="back"><wicket:message key="cmd.back"/></a>
+		<a class="btn btn-default" href="#" wicket:id="download"><wicket:message key="cmd.download"/></a>
+	</div>
+</wicket:extend>
+</body>
+</html>

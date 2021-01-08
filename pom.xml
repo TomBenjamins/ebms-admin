@@ -21,16 +21,16 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>nl.clockwork.ebms.admin</groupId>
+	<groupId>nl.lostlemon.ebms.admin</groupId>
 	<artifactId>ebms-admin</artifactId>
 	<packaging>jar</packaging>
 	<version>2.18.1-SNAPSHOT</version>
-	<name>EbMS Admin</name>
+	<name>EbMS Admin (LL implementation)</name>
 	<description></description>
-	<url>https://sourceforge.net/projects/javaebmsadmin/</url>
+	<url>https://github.com/eluinstra/ebms-admin</url>
 	<issueManagement>
 		<system>Tickets</system>
-		<url>https://sourceforge.net/p/javaebmsadmin/tickets/</url>
+		<url>https://github.com/eluinstra/ebms-admin/issues</url>
 	</issueManagement>	
 	<developers>
 		<developer>
@@ -45,10 +45,34 @@
 			</roles>
 			<timezone>1</timezone>
 		</developer>
+        <developer>
+            <id>richardm</id>
+            <name>Richard Morsch</name>
+            <email>richardm@lostlemon.nl</email>
+            <organization>Lost Lemon</organization>
+            <organizationUrl>http://www.lostlemon.nl/</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
+        <developer>
+            <id>tombenjamins</id>
+            <name>Tom Benjamins</name>
+            <email>tombenjamins@lostlemon.nl</email>
+            <organization>Lost Lemon</organization>
+            <organizationUrl>http://www.lostlemon.nl/</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
 	</developers>
-	<scm>
-		<connection>scm:git:ssh://git.code.sf.net/p/javaebmsadmin/code</connection>
-	</scm>
+    <scm>
+        <url>https://gitlab.lostlemon.nl/broker/ebms-admin</url>
+        <connection>scm:git:git@gitlab-priv.lostlemon.nl:broker/embs-admin.git</connection>
+        <tag>HEAD</tag>
+    </scm>
 	<organization>
 		<name>Clockwork</name>
 		<url>www.clockwork.nl</url>
@@ -238,7 +262,7 @@
 			<version>${cxf.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>nl.clockwork.ebms</groupId>
+			<groupId>nl.lostlemon.ebms</groupId>
 			<artifactId>ebms-core</artifactId>
 			<version>2.18.1-SNAPSHOT</version>
 			<exclusions>
@@ -321,12 +345,13 @@
 			<version>8.0.22</version>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
+		<!-- removed proprietary oracle jar from build as it's not needed for our solution -->
+        <!-- <dependency>
 			<groupId>com.oracle.jdbc</groupId>
 			<artifactId>ojdbc8</artifactId>
 			<version>18.3.0.0</version>
 			<scope>provided</scope>
-		</dependency>
+		</dependency> -->
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>

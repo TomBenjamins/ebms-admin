@@ -1,0 +1,9 @@
+include:
+  - project: 'lostlemon/remote-ci'
+    ref: master
+    file: '/public/v4/gitlab-maven-small.yml'
+
+variables:
+  MAVEN_PHASE: deploy
+  JAVA_VERSION: 8
+

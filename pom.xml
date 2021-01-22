@@ -95,11 +95,28 @@
 		<checkstyle.config.location>${basedir}/resources/reporting/checkstyle.xml</checkstyle.config.location>
 		<checkstyle.header.file>${basedir}/resources/reporting/license.txt</checkstyle.header.file>
 		<checkstyle.cache.file>${project.build.directory}/checkstyle-cachefile</checkstyle.cache.file>
-		<release.repo.url>http://sourceforge.net</release.repo.url>
-		<snapshot.repo.url>http://sourceforge.net</snapshot.repo.url>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<dependency.locations.enabled>false</dependency.locations.enabled>
 	</properties>
+    <profiles>
+        <profile>
+            <id>nexus-deploy</id>
+            <distributionManagement>
+                <repository>
+                    <id>nexus</id>
+                    <name>Lost Lemon Release Repo</name>
+                    <url>http://10.164.15.221:8081/repository/releases/</url>
+                    <uniqueVersion>false</uniqueVersion>
+                </repository>
+                <snapshotRepository>
+                    <id>nexus</id>
+                    <name>Lost Lemon Snapshot Repo</name>
+                    <url>http://10.164.15.221:8081/repository/snapshots/</url>
+                    <uniqueVersion>false</uniqueVersion>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+    </profiles>
 	<dependencies>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
@@ -648,16 +665,4 @@
 			</plugin>
 		</plugins>
 	</reporting>
-	<distributionManagement>
-		<repository>
-			<id>release.repo</id>
-			<name>Release repository</name>
-			<url>${release.repo.url}</url>
-		</repository>
-		<snapshotRepository>
-			<id>snapshot.repo</id>
-			<name>Snapshot repository</name>
-			<url>${snapshot.repo.url}</url>
-		</snapshotRepository>
-	</distributionManagement>
 </project>

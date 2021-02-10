@@ -4,23 +4,25 @@ ARG EBMS_ADMIN=ebms-admin
 ARG LOG4J2=log4j2.xml
 ARG START=start.sh
 ARG USER=ebms
+ARG EBMS_PROPS=ebms-admin.embedded.properties
+ARG JMX_PORT=1099
+ARG JDBC_PORT=3306
+ARG HEALTH_PORT=9017
+ARG SOAP_PORT=9089
+ARG PROXY_PORT=9876
+
 ENV WORKDIR /home/$USER
 ENV JAVA_ARGS "-Dlog4j.configurationFile=$LOG4J2"
-#LABEL maintainer="eluinstra@luin.dev"
-#LABEL version=nl.clockwork.ebms.admin.version=$EBMS_VERSION
+LABEL maintainer="tombenjamins@lostlemon.nl"
+LABEL version=nl.lostlemon.ebms.admin.version=$EBMS_VERSION
 WORKDIR $WORKDIR
 COPY target/${EBMS_ADMIN}.jar .
-ADD resources/docker/log4j2.docker.xml ${LOG4J2}
-ADD resources/docker/ebms-admin.embedded.docker.properties ebms-admin.embedded.properties
+ADD resources/docker/${LOG4J2} ${LOG4J2}
+ADD resources/docker/${EBMS_PROPS} ${EBMS_PROPS}
 #RUN addgroup -S $USER && \
 #adduser -S $USER -G $USER && \
-#touch ebms-admin.embedded.properties && \
 
-RUN touch ebms-admin.embedded.properties && \
-
-#wget https://github.com/eluinstra/ebms-admin/releases/download/${EBMS_ADMIN}/${EBMS_ADMIN}.jar -O ${EBMS_ADMIN}.jar && \
-#unzip -p ${EBMS_ADMIN}.jar $LOG4J2 > $LOG4J2 && \
-#sed -i 's/ref="File"/ref="Console"/g' $LOG4J2 && \
+RUN touch ${EBMS_PROPS} && \
 
 printf "#!/bin/sh\n" > $START && \
 printf "java ${JAVA_ARGS} -cp ${EBMS_ADMIN}.jar nl.clockwork.ebms.admin.StartEmbedded \$@" >> $START && \
@@ -29,6 +31,5 @@ chmod u+x $START
 #chown -R $USER:$USER $WORKDIR
 # USER $USER:$USER
 
-# ENTRYPOINT ["./$START -soap -headless -health -jmx true -jmxPort 1099 -port 8089 -healthPort 9017"]
-EXPOSE 1099 3306 9017 9089 9876
-
+# ENTRYPOINT ["./$START -soap -headless -health -jmx true -jmxPort ${JMX_PORT} -port ${SOAP_PORT} -healthPort ${HEALTH_PORT}"]
+EXPOSE ${JMX_PORT} ${JDBC_PORT} ${HEALTH_PORT} ${SOAP_PORT} ${PROXY_PORT}

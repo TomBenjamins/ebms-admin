@@ -1,0 +1,1 @@
+docker run --rm -P -it --volume d:/tools/ebms-admin-ll/test/cert:/cert --volume d:/tools/ebms-admin-ll/test/logs_docker:/logs registry-priv.lostlemon.nl/broker/ebms-admin

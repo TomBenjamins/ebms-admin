@@ -360,7 +360,6 @@
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>8.0.22</version>
-			<scope>provided</scope>
 		</dependency>
 		<!-- removed proprietary oracle jar from build as it's not needed for our solution -->
         <!-- <dependency>
@@ -401,7 +400,8 @@
 		</repository>
 	</repositories>
 	<build>
-		<resources>
+		<finalName>${project.artifactId}</finalName>
+        <resources>
 			<resource>
 				<filtering>false</filtering>
 				<directory>src/main/webapp</directory>

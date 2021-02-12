@@ -3,10 +3,4 @@ voor linux:
 docker run --rm --network="host" -e "SOAP_PORT=9089" -e "HEALTH_PORT=9017" -it --volume d:/tools/ebms-admin-ll/test/cert:/cert --volume d:/tools/ebms-admin-ll/test/logs_docker:/logs registry-priv.lostlemon.nl/broker/ebms-admin
 
 voor windows
-docker run --rm -p 9017:9017 -p 9089:9089 -p 9876:9876 -it --volume d:/tools/ebms-admin-ll/test/cert:/cert --volume d:/tools/ebms-admin-ll/test/logs_docker:/logs registry-priv.lostlemon.nl/broker/ebms-admin
-
 docker run --rm -p 9017:9017 -p 9089:9089 -p 9876:9876 -it -e "SOAP_PORT=9089" -e "HEALTH_PORT=9017" --volume d:/tools/ebms-admin-ll/test/cert:/cert --volume d:/tools/ebms-admin-ll/test/logs_docker:/logs registry-priv.lostlemon.nl/broker/ebms-admin
-
-./start.sh -soap -headless -health -jmx true -port 9089 -healthPort 9017
-
-./start.sh -port $SOAP_PORT -healthPort $HEALTH_PORT

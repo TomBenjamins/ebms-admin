@@ -3,7 +3,6 @@ ARG EBMS_VERSION=2.18.0
 ARG EBMS_ADMIN=ebms-admin
 ARG LOG4J2=log4j2.xml
 ARG USER=ebms
-ARG EBMS_PROPS=ebms-admin.embedded.properties
 
 ENV HEALTH_PORT=9017
 ENV SOAP_PORT=9089

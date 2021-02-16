@@ -1,4 +1,10 @@
 
+docker build -t registry-priv.lostlemon.nl/broker/ebms-admin .
+
+docker tag registry-priv.lostlemon.nl/broker/ebms-admin registry-priv.lostlemon.nl/broker/ebms-admin(:TAG) 
+
+docker push registry-priv.lostlemon.nl/broker/ebms-admin(:TAG)
+
 voor linux:
 docker run --rm --network="host" -e "SOAP_PORT=9089" -e "HEALTH_PORT=9017" -it --volume d:/tools/mule-standalone-3.9.4/conf:/conf --volume d:/tools/ebms-admin-ll/test/cert:/cert --volume d:/tools/ebms-admin-ll/test/logs_docker:/logs registry-priv.lostlemon.nl/broker/ebms-admin
 

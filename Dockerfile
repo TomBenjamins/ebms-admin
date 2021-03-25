@@ -1,5 +1,7 @@
 FROM openjdk:8-jre-alpine
 
+RUN apk add --no-cache tzdata
+
 ARG EBMS_VERSION=2.18.0
 ARG EBMS_ADMIN=ebms-admin
 ARG LOG4J2=log4j2.xml
@@ -13,12 +15,14 @@ ENV JAVA_ARGS "-Dlog4j.configurationFile=$LOG4J2"
 ENV START=./start.sh
 ENV CONFIGDIR /conf/
 
+ENV TZ Europe/Amsterdam
+
 LABEL maintainer="tombenjamins@lostlemon.nl"
 LABEL version=nl.lostlemon.ebms.admin.version=$EBMS_VERSION
 
 WORKDIR $WORKDIR
-# expose default jmx and default jdbc ports
-EXPOSE 1099 1999 3306 
+# expose default jmx ports
+EXPOSE 1099 1999 
 
 COPY target/${EBMS_ADMIN}.jar .
 ADD resources/docker/${LOG4J2} ${LOG4J2}

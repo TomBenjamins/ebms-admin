@@ -1,0 +1,20 @@
+version: '3.7'
+services:
+  ebms-admin-test:
+    restart: unless-stopped
+    image: registry-priv.lostlemon.nl/broker/ebms-admin:${TAGID}
+    ports:
+      - 3306:3306
+      - 9017:9017
+      - 9089:9089
+      - 9876:9876
+    environment:
+      TZ: 'Europe/Amsterdam'
+      SOAP_PORT: 9089
+      HEALTH_PORT: 9017
+    devices:
+     - "/dev/urandom:/dev/random"
+    volumes:
+     - ./logs:/logs
+     - ./conf:/conf
+     - ./cert:/cert

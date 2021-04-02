@@ -665,4 +665,11 @@
 			</plugin>
 		</plugins>
 	</reporting>
+
+	<profiles>
+		<profile>
+			<id>cibuild</id>
+		</profile>
+	</profiles>
+
 </project>

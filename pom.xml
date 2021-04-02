@@ -98,9 +98,6 @@
 		<checkstyle.cache.file>${project.build.directory}/checkstyle-cachefile</checkstyle.cache.file>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<dependency.locations.enabled>false</dependency.locations.enabled>
-		<checkstyle.skip>true</checkstyle.skip>
-        <spotbugs.skip>true</spotbugs.skip>
-
 	</properties>
     <profiles>
         <profile>
@@ -445,26 +442,6 @@
 			</testResource>
 		</testResources>
 		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<image>
-						<name>registry-priv.lostlemon.nl/broker/ebms-admin:${project.version}</name>
-						<publish>true</publish>
-					</image>
-					<docker>
-                            <publishRegistry>
-                                <username>${SPRING_REGISTRY_USER}</username>
-                                <password>${SPRING_REGISTRY_PASSWORD}</password>
-                                <url>https://${SPRING_REGISTRY_URL}/v1/</url>
-                                <email>noreply@lostlemon.nl</email>
-                            </publishRegistry>
-                        </docker>
-
-				</configuration>
-			</plugin>
-
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>versions-maven-plugin</artifactId>

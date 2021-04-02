@@ -116,6 +116,9 @@
                 </snapshotRepository>
             </distributionManagement>
         </profile>
+		<profile>
+			<id>cibuild</id>
+		</profile>
     </profiles>
 	<dependencies>
 		<dependency>
@@ -665,11 +668,5 @@
 			</plugin>
 		</plugins>
 	</reporting>
-
-	<profiles>
-		<profile>
-			<id>cibuild</id>
-		</profile>
-	</profiles>
 
 </project>

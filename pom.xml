@@ -453,6 +453,15 @@
 						<name>registry-priv.lostlemon.nl/broker/ebms-admin:${project.version}</name>
 						<publish>true</publish>
 					</image>
+					<docker>
+                            <publishRegistry>
+                                <username>${SPRING_REGISTRY_USER}</username>
+                                <password>${SPRING_REGISTRY_PASSWORD}</password>
+                                <url>https://${SPRING_REGISTRY_URL}/v1/</url>
+                                <email>noreply@lostlemon.nl</email>
+                            </publishRegistry>
+                        </docker>
+
 				</configuration>
 			</plugin>
 

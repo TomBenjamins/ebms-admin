@@ -635,4 +635,11 @@
 			<url>${snapshot.repo.url}</url>
 		</snapshotRepository>
 	</distributionManagement>
+
+	<profiles>
+		<profile>
+			<id>cibuild</id>
+		</profile>
+	</profiles>
+
 </project>

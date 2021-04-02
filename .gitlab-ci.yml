@@ -6,4 +6,11 @@ include:
 variables:
   MAVEN_PHASE: deploy
   JAVA_VERSION: 8
+  DOCKER_BUILD: 'yes'
 
+Deploy Test:
+  extends:
+    - .deploy
+  variables:
+    SSH_USER: deploy-ebms-test
+    SSH_SERVER: dh01-dev.priv.lostlemon.nl

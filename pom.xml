@@ -451,6 +451,7 @@
 				<configuration>
 					<image>
 						<name>registry-priv.lostlemon.nl/broker/ebms-admin:${project.version}</name>
+						<publish>true</publish>
 					</image>
 				</configuration>
 			</plugin>

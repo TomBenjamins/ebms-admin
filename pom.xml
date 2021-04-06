@@ -127,7 +127,6 @@
                         <artifactId>docker-maven-plugin</artifactId>
                         <version>0.34.1</version>
                         <configuration>
-							<registry>${CI_REGISTRY_URL}</registry>
                             <images>
                                 <image>
                                     <name>${CI_REGISTRY_URL}:433/broker/ebms-admin:${dockerTagId}</name>

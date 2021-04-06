@@ -127,6 +127,7 @@
                         <artifactId>docker-maven-plugin</artifactId>
                         <version>0.34.1</version>
                         <configuration>
+							<registry>${CI_REGISTRY_URL}</registry>
                             <images>
                                 <image>
                                     <name>broker/ebms-admin:${dockerTagId}</name>
@@ -137,7 +138,7 @@
                                 </image>
                             </images>
                             <verbose>true</verbose>
-                            <pushRegistry>${CI_REGISTRY_URL}</pushRegistry>
+                            <pushRegistry>https://${CI_REGISTRY_URL}/v1</pushRegistry>
                             <authConfig>
                                 <push>
                                     <username>${CI_REGISTRY_USER}</username>

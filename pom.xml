@@ -129,7 +129,7 @@
                         <configuration>
                             <images>
                                 <image>
-                                    <name>broker/ebms-admin:${dockerTagId}</name>
+                                    <name>${CI_REGISTRY_URL}:433/broker/ebms-admin:${dockerTagId}</name>
                                     <build>
                                         <contextDir>${project.basedir}</contextDir>
                                         <dockerFile>./Dockerfile</dockerFile>
@@ -142,6 +142,7 @@
                                 <push>
                                     <username>${CI_REGISTRY_USER}</username>
                                     <password>${CI_REGISTRY_PASSWORD}</password>
+                                    
                                 </push>
                             </authConfig>
                         </configuration>

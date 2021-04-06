@@ -137,7 +137,7 @@
                                 </image>
                             </images>
                             <verbose>true</verbose>
-                            <pushRegistry>${SPRING_REGISTRY_URL}</pushRegistry>
+                            <pushRegistry>registry-priv.lostlemon.nl</pushRegistry>
                             <authConfig>
                                 <push>
                                     <username>${SPRING_REGISTRY_USER}</username>
@@ -148,7 +148,6 @@
                         <executions>
                             <execution>
                                 <id>build</id>
-                                <phase>install</phase>
                                 <goals>
                                     <goal>build</goal>
                                     <goal>push</goal>

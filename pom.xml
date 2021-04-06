@@ -138,6 +138,7 @@
                                 </image>
                             </images>
                             <verbose>true</verbose>
+							<pullRegistry>${CI_REGISTRY_URL}</pullRegistry>
                             <pushRegistry>https://${CI_REGISTRY_URL}/v1</pushRegistry>
                             <authConfig>
                                 <push>

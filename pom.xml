@@ -139,7 +139,7 @@
                             </images>
                             <verbose>true</verbose>
 							<pullRegistry>${CI_REGISTRY_URL}</pullRegistry>
-                            <pushRegistry>https://${CI_REGISTRY_URL}/v1</pushRegistry>
+                            <pushRegistry>https://${CI_REGISTRY_URL}</pushRegistry>
                             <authConfig>
                                 <push>
                                     <username>${CI_REGISTRY_USER}</username>

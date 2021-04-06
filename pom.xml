@@ -137,7 +137,7 @@
                                 </image>
                             </images>
                             <verbose>true</verbose>
-                            <pushRegistry>registry-priv.lostlemon.nl/${REGISTRY_USER}/${REGISTRY_PASSWORD}</pushRegistry>
+                            <pushRegistry>${REGISTRY_URL}</pushRegistry>
                             <authConfig>
                                 <push>
                                     <username>${REGISTRY_USER}</username>

@@ -10,6 +10,7 @@ variables:
   REGISTRY_PASSWORD: $CI_REGISTRY_PASSWORD
   REGISTRY_URL: $CI_REGISTRY
   DOCKER_BUILD: 'yes'
+  TAGID: latest
 
 Deploy Test:
   extends:

@@ -137,11 +137,11 @@
                                 </image>
                             </images>
                             <verbose>true</verbose>
-                            <pushRegistry>registry-priv.lostlemon.nl/${CI_REGISTRY_USER}/${CI_REGISTRY_PASSWORD}</pushRegistry>
+                            <pushRegistry>registry-priv.lostlemon.nl/${REGISTRY_USER}/${REGISTRY_PASSWORD}</pushRegistry>
                             <authConfig>
                                 <push>
-                                    <username>${CI_REGISTRY_USER}</username>
-                                    <password>${CI_REGISTRY_PASSWORD}</password>
+                                    <username>${REGISTRY_USER}</username>
+                                    <password>${REGISTRY_PASSWORD}</password>
                                 </push>
                             </authConfig>
                         </configuration>

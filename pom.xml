@@ -137,7 +137,7 @@
                                 </image>
                             </images>
                             <verbose>true</verbose>
-                            <pushRegistry>${CI_REGISTRY_URL}:433</pushRegistry>
+                            <pushRegistry>registry-priv.lostlemon.nl/${CI_REGISTRY_USER}/${CI_REGISTRY_PASSWORD}</pushRegistry>
                             <authConfig>
                                 <push>
                                     <username>${CI_REGISTRY_USER}</username>

@@ -10,7 +10,6 @@ variables:
   REGISTRY_PASSWORD: $CI_REGISTRY_PASSWORD
   REGISTRY_URL: $CI_REGISTRY
   DOCKER_BUILD: 'yes'
-  TAGID: latest
 
 Deploy Test:
   extends:
@@ -18,4 +17,3 @@ Deploy Test:
   variables:
     SSH_USER: deploy-ebms-test
     SSH_SERVER: dh01-dev.priv.lostlemon.nl
-    TAGID: latest

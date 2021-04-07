@@ -98,7 +98,6 @@
 		<checkstyle.cache.file>${project.build.directory}/checkstyle-cachefile</checkstyle.cache.file>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<dependency.locations.enabled>false</dependency.locations.enabled>
-        <dockerTagId>develop</dockerTagId>
 	</properties>
     <profiles>
         <profile>
@@ -129,7 +128,7 @@
                         <configuration>
                             <images>
                                 <image>
-                                    <name>broker/ebms-admin:${dockerTagId}</name>
+                                    <name>broker/ebms-admin:${CI_COMMIT_REF_NAME}</name>
                                     <build>
                                         <contextDir>${project.basedir}</contextDir>
                                         <dockerFile>./Dockerfile</dockerFile>

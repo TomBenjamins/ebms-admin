@@ -25,7 +25,7 @@
 	<groupId>nl.lostlemon.ebms.admin</groupId>
 	<artifactId>ebms-admin</artifactId>
 	<packaging>jar</packaging>
-	<version>2.18.1-SNAPSHOT</version>
+	<version>2.18.1.LL-SNAPSHOT</version>
 	<name>EbMS Admin (LL implementation)</name>
 	<description></description>
 	<url>https://github.com/eluinstra/ebms-admin</url>
@@ -98,6 +98,7 @@
 		<checkstyle.cache.file>${project.build.directory}/checkstyle-cachefile</checkstyle.cache.file>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<dependency.locations.enabled>false</dependency.locations.enabled>
+        <dockerTagId>${CI_COMMIT_REF_NAME}</dockerTagId>
 	</properties>
     <profiles>
         <profile>
@@ -128,7 +129,7 @@
                         <configuration>
                             <images>
                                 <image>
-                                    <name>broker/ebms-admin:${CI_COMMIT_REF_NAME}</name>
+                                    <name>broker/ebms-admin:${dockerTagId}</name>
                                     <build>
                                         <contextDir>${project.basedir}</contextDir>
                                         <dockerFile>./Dockerfile</dockerFile>

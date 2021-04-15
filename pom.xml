@@ -145,15 +145,6 @@
                                 </push>
                             </authConfig>
                         </configuration>
-                        <executions>
-                            <execution>
-                                <id>build</id>
-                                <goals>
-                                    <goal>build</goal>
-                                    <goal>push</goal>
-                                </goals>
-                            </execution>
-                        </executions>
                     </plugin>
                 </plugins>
             </build>

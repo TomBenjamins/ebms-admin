@@ -10,7 +10,7 @@ variables:
   REGISTRY_PASSWORD: $CI_REGISTRY_PASSWORD
   REGISTRY_URL: $CI_REGISTRY
   DOCKER_BUILD: 'yes'
-  DOCKER_BUILD_GOAL: fabric8:build fabric8:push
+  DOCKER_BUILD_GOAL: docker:build
 
 Deploy Test:
   extends:

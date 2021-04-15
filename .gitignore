@@ -11,3 +11,6 @@ hsqldb
 ignite
 logs
 /dependency-reduced-pom.xml
+
+
+.idea

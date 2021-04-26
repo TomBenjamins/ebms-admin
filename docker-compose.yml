@@ -4,7 +4,6 @@ services:
     restart: unless-stopped
     image: registry-priv.lostlemon.nl/broker/ebms-admin:${TAGID}
     ports:
-      - 3306:3306
       - 9017:9017
       - 9089:9089
       - 9876:9876

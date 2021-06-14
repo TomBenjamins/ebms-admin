@@ -28,7 +28,13 @@
 			<PatternLayout pattern="%d [%t] %-5p %c - %m%n" />
 			<Policies>
 				<TimeBasedTriggeringPolicy interval="1"/>
-			</Policies>                               
+			</Policies>
+            <DefaultRolloverStrategy>
+                <Delete basePath="logs/" maxDepth="1">
+                    <IfFileName glob="ebms-admin-*.log" />
+                    <IfLastModified age="14d" />
+                </Delete>
+            </DefaultRolloverStrategy>
 		</RollingFile>
 	</Appenders>
 

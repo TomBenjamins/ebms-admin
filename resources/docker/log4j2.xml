@@ -30,7 +30,7 @@
 				<TimeBasedTriggeringPolicy interval="1"/>
 			</Policies>
             <DefaultRolloverStrategy>
-                <Delete basePath="logs/" maxDepth="1">
+                <Delete basePath="/logs/" maxDepth="1">
                     <IfFileName glob="ebms-admin-*.log" />
                     <IfLastModified age="14d" />
                 </Delete>

@@ -79,7 +79,7 @@ public class DBClean implements SystemInterface
 	{
 		val result = new Options();
 		result.addOption("h",false,"print this message");
-		result.addOption("cmd",true,"objects to clean [vales: cpa|messages]");
+		result.addOption("cmd",true,"objects to clean [values: cpa|messages]");
 		result.addOption("cpaId",true,"the cpaId of the CPA to delete");
 		result.addOption("dateFrom",true,"the date from which objects will be deleted [format: YYYYMMDD][default: " + dateFormatter.format(LocalDate.now().minusDays(30)) + "]");
 		result.addOption("configDir",true,"set config directory (default=current dir)");
@@ -163,7 +163,8 @@ public class DBClean implements SystemInterface
 		}
 		catch (Exception e)
 		{
-			transactionManager.rollback(status);
+		    System.out.println(e);
+		    transactionManager.rollback(status);
 		}
 		transactionManager.commit(status);
 	}
@@ -171,21 +172,24 @@ public class DBClean implements SystemInterface
 	private void executeCleanMessages(CommandLine cmd) throws IOException
 	{
 		val dateFrom = createDateFrom(cmd.getOptionValue("dateFrom"));
+		val status = transactionManager.getTransaction(null);
 		if (dateFrom != null)
 		{
 			println("using fromDate " + dateFrom);
-			val status = transactionManager.getTransaction(null);
+			
 			try
 			{
 				cleanMessages(dateFrom);
 			}
 			catch (Exception e)
 			{
-				transactionManager.rollback(status);
+				System.out.println(e);
+			    transactionManager.rollback(status);
 			}
-			transactionManager.commit(status);
+		}else {
+		    println("Unable to parse date " + cmd.getOptionValue("dateFrom"));
 		}
-		println("Unable to parse date " + cmd.getOptionValue("dateFrom"));
+		transactionManager.commit(status);
 	}
 
 	private static Instant createDateFrom(String s)

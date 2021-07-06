@@ -23,18 +23,25 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+import static java.util.stream.Collectors.toList;
 
 import com.querydsl.sql.SQLExpressions;
 import com.querydsl.sql.SQLQueryFactory;
 
 import lombok.AccessLevel;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.var;
@@ -50,8 +57,29 @@ import nl.clockwork.ebms.querydsl.model.QEbmsMessageEvent;
 @RequiredArgsConstructor
 public class DBClean extends Start
 {
-	private static DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+	private static String OPTION_CMD_CPA = "cpa";
+	private static String OPTION_CMD_DATE = "dateFrom";
+	private static String FORMAT_DATE = "YYYYMMDD";
+	private static int DEFAULT_DAYS = 30;
+	
+	TransactionTemplate transactionTemplate;
+	
+	JdbcTemplate jdbcTemplate;
+	
+	@NonNull
+	PlatformTransactionManager transactionManager;
+	
+	BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
+	String SELECT_MESSAGEIDS_FOR_CPA = "select message_id from ebms_message where cpa_id = ?";
+	String SELECT_MESSAGEIDS_SINCE = "select message_id from ebms_message where cpa_id = ?";
+	
+	String DELETE_FROM_EVENTLOG = "delete from delivery_log where message_id = ?";
+	String DELETE_FROM_EVENT = "delete from delivery_task where message_id = ?";
+	String DELETE_FROM_MESSAGEEVENT = "delete from ebms_event where message_id = ?";
+	String DELETE_FROM_ATTACHMENT = "delete from ebms_attachment where message_id = ?";
+	String DELETE_FROM_MESSAGE = "delete from ebms_message where message_id = ?";
+	
 	public static void main(String[] args) throws Exception
 	{
 		val options = createOptions();
@@ -61,16 +89,16 @@ public class DBClean extends Start
 		
 		try (val context = new AnnotationConfigApplicationContext(DBCleanConfig.class))
 		{
-			val dbClean = createDBClean(context);
-			dbClean.execute(cmd);
+			createDBClean(context)
+				.execute(cmd);
 		}
 	}
 
 	private static DBClean createDBClean(AnnotationConfigApplicationContext context)
 	{
-		val queryFactory = context.getBean(SQLQueryFactory.class);
-		val transactionManager = context.getBean("dataSourceTransactionManager",PlatformTransactionManager.class);
-		val dbClean = new DBClean(queryFactory,transactionManager);
+		val transactionManager = context.getBean("dataSourceTransactionManager", PlatformTransactionManager.class);
+		val dbClean = new DBClean(transactionManager);
+		
 		return dbClean;
 	}
 
@@ -78,47 +106,33 @@ public class DBClean extends Start
 	{
 		val result = new Options();
 		result.addOption("h",false,"print this message");
-		result.addOption("cmd",true,"objects to clean [vales: cpa|messages]");
-		result.addOption("cpaId",true,"the cpaId of the CPA to delete");
-		result.addOption("dateFrom",true,"the date from which objects will be deleted [format: YYYYMMDD][default: " + dateFormatter.format(LocalDate.now().minusDays(30)) + "]");
+		result.addOption(OPTION_CMD_CPA, true, "the cpaId of the CPA for which to delete the associated objects");
+		result.addOption(OPTION_CMD_DATE, true, String.format("the date from which objects will be deleted [format: %s][default: -%d days, %s]", DATE_FORMAT, DEFAULT_DAYS, dateFormatter.format(LocalDate.now().minusDays(DEFAULT_DAYS))) );
 		return result;
 	}
-
-	SQLQueryFactory queryFactory;
-	PlatformTransactionManager transactionManager;
-	BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-	QCpa cpaTable = QCpa.cpa1;
-	QEbmsMessage messageTable = QEbmsMessage.ebmsMessage;
-	QEbmsAttachment attachmentTable = QEbmsAttachment.ebmsAttachment;
-	QEbmsMessageEvent messageEventTable = QEbmsMessageEvent.ebmsMessageEvent;
-	QEbmsEvent eventTable = QEbmsEvent.ebmsEvent;
-	QEbmsEventLog eventLogTable = QEbmsEventLog.ebmsEventLog;
 	
 	private void execute(final org.apache.commons.cli.CommandLine cmd) throws Exception
 	{
-		
-		switch(cmd.getOptionValue("cmd",""))
+		if (cmd.hasOption(OPTION_CMD_CPA))
 		{
-			case("cpa"):
-				validateCleanCPA(cmd);
+			val cpaId = cmd.getOptionValue(OPTION_CMD_CPA, "");
+			if (!cpaId.isEmpty())
+			{
 				executeCleanCPA(cmd);
-				break;
-			case("messages"):
+			}
+			else
+			{
+				print("missing cpa id on commandline");
+			}
+		} else
+			if (cmd.hasOption(OPTION_CMD_DATE))
+			{
+				val dateSince = cmd.getOptionValue(OPTION_CMD_DATE, dateFormatter.format(LocalDate.now().minusDays(DEFAULT_DAYS))));
 				executeCleanMessages(cmd);
-				break;
-			default:
-				print(cmd.getOptionValue("cmd") + " not recognized");
-		}
-	}
+			} else {
+				print("do nothing");
+			}
 
-	private boolean validateCleanCPA(CommandLine cmd)
-	{
-		if (!cmd.hasOption("cpaId"))
-		{
-			print("Option cpaId missing");
-			return false;
-		}
-		return true;
 	}
 
 	private void executeCleanCPA(CommandLine cmd) throws IOException
@@ -136,7 +150,7 @@ public class DBClean extends Start
 					cleanCPA(cpaId);
 			}
 			else
-				print("CPA " + cpaId + " not found!");
+				print("CPA %s not found!", cpaId);
 		}
 		catch (Exception e)
 		{
@@ -162,7 +176,7 @@ public class DBClean extends Start
 			}
 			transactionManager.commit(status);
 		}
-		print("Unable to parse date " + cmd.getOptionValue("dateFrom"));
+		print("Unable to parse date %s", cmd.getOptionValue("dateFrom"));
 	}
 
 	private static Instant createDateFrom(String s)
@@ -180,50 +194,53 @@ public class DBClean extends Start
 
 	private void cleanCPA(String cpaId)
 	{
-		val selectMessageIdsByCpaId = SQLExpressions.select(messageTable.messageId).from(messageTable).where(messageTable.cpaId.eq(cpaId));
-
-		var result = queryFactory.delete(eventLogTable).where(eventLogTable.messageId.in(selectMessageIdsByCpaId)).execute();
-		print(result + " eventLogs deleted");
-
-		result = queryFactory.delete(eventTable).where(eventTable.messageId.in(selectMessageIdsByCpaId)).execute();
-		print(result + " events deleted");
-
-		result = queryFactory.delete(messageEventTable).where(messageEventTable.messageId.in(selectMessageIdsByCpaId)).execute();
-		print(result + " messageEvents deleted");
-
-		result = queryFactory.delete(attachmentTable).where(attachmentTable.messageId.in(selectMessageIdsByCpaId)).execute();
-		print(result + " attachments deleted");
-
-		result = queryFactory.delete(messageTable).where(messageTable.cpaId.eq(cpaId)).execute();
-		print(result + " messages deleted");
-
-		//result = queryFactory.delete(cpaTable).where(cpaTable.cpaId.eq(cpaId)).execute();
-		//print("cpa " + cpaId + " deleted");
-		print("delete cpa " + cpaId + " in ebms-admin to delete it from the cache!!!");
+		List<String> messageIds = jdbcTemplate
+				.queryForList(SELECT_MESSAGEIDS_FOR_CPA, String.class, cpaId)
+				.stream()
+				.collect(toList());
+		
+		print("attempting to clean %d messages", messageIds.size() );
+		
+		deleteFor(DELETE_FROM_EVENTLOG, messageIds, "eventlogs");
+		deleteFor(DELETE_FROM_EVENT, messageIds, "events");
+		deleteFor(DELETE_FROM_MESSAGEEVENT, messageIds, "message events");
+		deleteFor(DELETE_FROM_ATTACHMENT, messageIds, "attachments");
+		deleteFor(DELETE_FROM_MESSAGE, messageIds, "messages");
+		
+		print("delete cpa %s in ebms-admin to delete it from the cache!!!", cpaId);
+	}
+	
+	private void deleteFor(String statement, List<String> messageIds, String logStatement) {
+		AtomicInteger ctr = new AtomicInteger();
+		messageIds.forEach( id ->
+			ctr.getAndAdd( jdbcTemplate.update(statement, id) )
+		);
+		
+		print( "%d %s deleted", ctr.intValue(), logStatement );
 	}
 
 	private void cleanMessages(Instant dateFrom)
 	{
-		val selectMessageIdsByPersistTime = SQLExpressions.select(messageTable.messageId).from(messageTable).where(messageTable.persistTime.loe(dateFrom));
-
-		var result = queryFactory.delete(eventLogTable).where(eventLogTable.messageId.in(selectMessageIdsByPersistTime)).execute();
-		print(result + " eventLogs deleted");
-
-		result = queryFactory.delete(eventTable).where(eventTable.messageId.in(selectMessageIdsByPersistTime)).execute();
-		print(result + " events deleted");
-
-		result = queryFactory.delete(messageEventTable).where(messageEventTable.messageId.in(selectMessageIdsByPersistTime)).execute();
-		print(result + " messageEvents deleted");
-
-		result = queryFactory.delete(attachmentTable).where(attachmentTable.messageId.in(selectMessageIdsByPersistTime)).execute();
-		print(result + " attachments deleted");
-
-		result = queryFactory.delete(messageTable).where(messageTable.persistTime.loe(dateFrom)).execute();
-		print(result + " messages deleted");
+		
+		List<String> messageIds = jdbcTemplate
+				.queryForList(SELECT_MESSAGEIDS_FOR_CPA, String.class, dateFrom)
+				.stream()
+				.collect(toList());
+		
+		deleteFor(DELETE_FROM_EVENTLOG, messageIds, "eventlogs");
+		deleteFor(DELETE_FROM_EVENT, messageIds, "events");
+		deleteFor(DELETE_FROM_MESSAGEEVENT, messageIds, "message events");
+		deleteFor(DELETE_FROM_ATTACHMENT, messageIds, "attachments");
+		deleteFor(DELETE_FROM_MESSAGE, messageIds, "messages");
 	}
 
-	private void print(String s)
+	private void print(String s, Object...args)
 	{
-		System.out.println(s);
+		System.out.println(String.format(s, args));
+	}
+
+	public DBClean(@NonNull PlatformTransactionManager transactionManager) {
+		this.transactionTemplate = new TransactionTemplate();
+		this.transactionManager = transactionManager;
 	}
 }

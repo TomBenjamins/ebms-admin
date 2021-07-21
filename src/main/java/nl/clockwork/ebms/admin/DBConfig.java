@@ -15,6 +15,9 @@
  */
 package nl.clockwork.ebms.admin;
 
+import nl.clockwork.ebms.kafka.KafkaConfig;
+import nl.clockwork.ebms.querydsl.model.QueryDSLConfig;
+
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
@@ -24,7 +27,6 @@ import lombok.experimental.FieldDefaults;
 import nl.clockwork.ebms.dao.DAOConfig;
 import nl.clockwork.ebms.datasource.DataSourceConfig;
 import nl.clockwork.ebms.jms.JMSConfig;
-import nl.clockwork.ebms.querydsl.QueryDSLConfig;
 import nl.clockwork.ebms.transaction.TransactionManagerConfig;
 
 @Configuration
@@ -33,6 +35,7 @@ import nl.clockwork.ebms.transaction.TransactionManagerConfig;
 		DataSourceConfig.class,
 		JMSConfig.class,
 		QueryDSLConfig.class,
+		KafkaConfig.class,
 		TransactionManagerConfig.class})
 @PropertySource(value = {
 		"classpath:nl/clockwork/ebms/default.properties",

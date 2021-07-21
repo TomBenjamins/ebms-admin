@@ -20,18 +20,17 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>nl.lostlemon.ebms.admin</groupId>
+	<groupId>nl.clockwork.ebms.admin</groupId>
 	<artifactId>ebms-admin</artifactId>
 	<packaging>jar</packaging>
-	<version>2.18.1.8.LL-SNAPSHOT</version>
-	<name>EbMS Admin (LL implementation)</name>
+	<version>2.18.3-SNAPSHOT</version>
+	<name>EbMS Admin</name>
 	<description></description>
-	<url>https://github.com/eluinstra/ebms-admin</url>
+	<url>https://sourceforge.net/projects/javaebmsadmin/</url>
 	<issueManagement>
 		<system>Tickets</system>
-		<url>https://github.com/eluinstra/ebms-admin/issues</url>
+		<url>https://sourceforge.net/p/javaebmsadmin/tickets/</url>
 	</issueManagement>	
 	<developers>
 		<developer>
@@ -46,38 +45,15 @@
 			</roles>
 			<timezone>1</timezone>
 		</developer>
-        <developer>
-            <id>richardm</id>
-            <name>Richard Morsch</name>
-            <email>richardm@lostlemon.nl</email>
-            <organization>Lost Lemon</organization>
-            <organizationUrl>http://www.lostlemon.nl/</organizationUrl>
-            <roles>
-                <role>Developer</role>
-            </roles>
-            <timezone>+1</timezone>
-        </developer>
-        <developer>
-            <id>tombenjamins</id>
-            <name>Tom Benjamins</name>
-            <email>tombenjamins@lostlemon.nl</email>
-            <organization>Lost Lemon</organization>
-            <organizationUrl>http://www.lostlemon.nl/</organizationUrl>
-            <roles>
-                <role>Developer</role>
-            </roles>
-            <timezone>+1</timezone>
-        </developer>
 	</developers>
-    <scm>
-        <url>https://gitlab.lostlemon.nl/broker/ebms-admin</url>
-        <connection>scm:git:git@gitlab-priv.lostlemon.nl:broker/embs-admin.git</connection>
-        <tag>HEAD</tag>
-    </scm>
+	<scm>
+		<connection>scm:git:ssh://git.code.sf.net/p/javaebmsadmin/code</connection>
+	</scm>
 	<organization>
 		<name>Clockwork</name>
 		<url>www.clockwork.nl</url>
 	</organization>
+
 	<licenses>
 		<license>
 			<name>The Apache Software License, Version 2.0</name>
@@ -85,97 +61,106 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
+
 	<properties>
 		<jdk.version>1.8</jdk.version>
-		<junit.jupiter.version>5.7.0</junit.jupiter.version>
-		<wicket.version>8.9.0</wicket.version>
-		<jetty.version>9.4.33.v20201020</jetty.version>
-		<spring.version>5.2.9.RELEASE</spring.version>
-		<cxf.version>3.4.0</cxf.version>
-		<activemq.version>5.16.0</activemq.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<junit.jupiter.version>5.7.1</junit.jupiter.version>
+		<wicket.version>8.12.0</wicket.version>
+		<jetty.version>9.4.40.v20210413</jetty.version>
+		<spring.version>5.2.15.RELEASE</spring.version>
+		<cxf.version>3.4.3</cxf.version>
+		<activemq.version>5.16.2</activemq.version>
+		<querydsl.version>4.4.0</querydsl.version>
 		<checkstyle.config.location>${basedir}/resources/reporting/checkstyle.xml</checkstyle.config.location>
 		<checkstyle.header.file>${basedir}/resources/reporting/license.txt</checkstyle.header.file>
 		<checkstyle.cache.file>${project.build.directory}/checkstyle-cachefile</checkstyle.cache.file>
+		<release.repo.url>http://sourceforge.net</release.repo.url>
+		<snapshot.repo.url>http://sourceforge.net</snapshot.repo.url>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<dependency.locations.enabled>false</dependency.locations.enabled>
-        <dockerTagId>${CI_COMMIT_REF_NAME}</dockerTagId>
-		<ll.ebms-core.version>2.18.1.3.LL</ll.ebms-core.version>
 	</properties>
-    <profiles>
-        <profile>
-            <id>nexus-deploy</id>
-            <distributionManagement>
-                <repository>
-                    <id>nexus</id>
-                    <name>Lost Lemon Release Repo</name>
-                    <url>http://10.164.15.221:8081/repository/releases/</url>
-                    <uniqueVersion>false</uniqueVersion>
-                </repository>
-                <snapshotRepository>
-                    <id>nexus</id>
-                    <name>Lost Lemon Snapshot Repo</name>
-                    <url>http://10.164.15.221:8081/repository/snapshots/</url>
-                    <uniqueVersion>false</uniqueVersion>
-                </snapshotRepository>
-            </distributionManagement>
-        </profile>
-        <profile>
-            <id>cibuild</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <version>0.34.1</version>
-                        <configuration>
-                            <images>
-                                <image>
-                                    <name>broker/ebms-admin:${dockerTagId}</name>
-                                    <build>
-                                        <contextDir>${project.basedir}</contextDir>
-                                        <dockerFile>./Dockerfile</dockerFile>
-                                    </build>
-                                </image>
-                            </images>
-                            <verbose>true</verbose>
-                            <pushRegistry>${REGISTRY_URL}</pushRegistry>
-                            <authConfig>
-                                <push>
-                                    <username>${REGISTRY_USER}</username>
-                                    <password>${REGISTRY_PASSWORD}</password>
-                                </push>
-                            </authConfig>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>release</id>
-            <properties>
-                <dockerTagId>${project.version}</dockerTagId>
-            </properties>
-        </profile>
-    </profiles>
+	
 	<dependencies>
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-api</artifactId>
-			<version>${junit.jupiter.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-engine</artifactId>
-			<version>${junit.jupiter.version}</version>
-			<scope>test</scope>
-		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.16</version>
+			<version>1.18.20</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.xbean</groupId>
+			<artifactId>xbean-spring</artifactId>
+			<version>4.19</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-collections4</artifactId>
+			<version>4.4</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-cli</groupId>
+			<artifactId>commons-cli</artifactId>
+			<version>1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>com.lmax</groupId>
+			<artifactId>disruptor</artifactId>
+			<version>3.4.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j-impl</artifactId>
+			<version>2.14.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>2.14.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-csv</artifactId>
+			<version>1.8</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-pool2</artifactId>
+			<version>2.9.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.beryx</groupId>
+			<artifactId>text-io</artifactId>
+			<version>3.4.1</version>
+		</dependency>
+
+		<!-- querydsl -->
+		<dependency>
+			<groupId>com.querydsl</groupId>
+			<artifactId>querydsl-sql</artifactId>
+			<version>${querydsl.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.querydsl</groupId>
+			<artifactId>querydsl-sql-spring</artifactId>
+			<version>${querydsl.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.querydsl</groupId>
+			<artifactId>querydsl-sql-codegen</artifactId>
+			<version>${querydsl.version}</version>
 			<scope>provided</scope>
 		</dependency>
+
+		<!-- cache -->
+		<dependency>
+			<groupId>org.apache.ignite</groupId>
+			<artifactId>ignite-slf4j</artifactId>
+			<version>2.10.0</version>
+		</dependency>
+
+		<!-- jetty -->
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
@@ -197,53 +182,8 @@
 			<artifactId>jetty-jmx</artifactId>
 			<version>${jetty.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-collections4</artifactId>
-			<version>4.4</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-cli</groupId>
-			<artifactId>commons-cli</artifactId>
-			<version>1.4</version>
-		</dependency>
-		<dependency>
-			<groupId>org.beryx</groupId>
-			<artifactId>text-io</artifactId>
-			<version>3.4.1</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-slf4j-impl</artifactId>
-			<version>2.13.3</version>
-		</dependency>
-		<dependency>
-			<groupId>com.lmax</groupId>
-			<artifactId>disruptor</artifactId>
-			<version>3.4.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-core</artifactId>
-			<version>2.13.3</version>
-		</dependency>
-		<dependency>
-		  <groupId>org.apache.ignite</groupId>
-		  <artifactId>ignite-slf4j</artifactId>
-		  <version>2.9.0</version>
-		  <!--exclusions>
-		  	<exclusion>
-					<groupId>com.h2database</groupId>
-					<artifactId>h2</artifactId>
-				</exclusion>
-		  </exclusions-->
-		</dependency>
+
+		<!-- wicket -->
 		<dependency>
 			<groupId>org.apache.wicket</groupId>
 			<artifactId>wicket-core</artifactId>
@@ -265,6 +205,13 @@
 			<version>${wicket.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>de.adesso.wicked-charts</groupId>
+			<artifactId>wicked-charts-wicket8</artifactId>
+			<version>3.2.1</version>
+		</dependency>
+
+		<!-- spring -->
+		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context-support</artifactId>
 			<version>${spring.version}</version>
@@ -284,25 +231,8 @@
 			<artifactId>spring-jms</artifactId>
 			<version>${spring.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>de.adesso.wicked-charts</groupId>
-			<artifactId>wicked-charts-wicket8</artifactId>
-			<version>3.2.1</version>
-			<exclusions>
-				<exclusion>
-					<groupId>com.fasterxml.jackson.core</groupId>
-					<artifactId>jackson-core</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.fasterxml.jackson.core</groupId>
-					<artifactId>jackson-annotations</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.fasterxml.jackson.core</groupId>
-					<artifactId>jackson-databind</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
+
+		<!-- cxf -->
 		<dependency>
 			<groupId>org.apache.cxf</groupId>
 			<artifactId>cxf-rt-frontend-jaxws</artifactId>
@@ -318,27 +248,8 @@
 			<artifactId>cxf-rt-transports-http</artifactId>
 			<version>${cxf.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>nl.lostlemon.ebms</groupId>
-			<artifactId>ebms-core</artifactId>
-			<version>${ll.ebms-core.version}</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>mail</artifactId>
-					<groupId>javax.mail</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-csv</artifactId>
-			<version>1.8</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-pool2</artifactId>
-			<version>2.9.0</version>
-		</dependency>
+
+		<!-- activemq -->
 		<dependency>
 			<groupId>org.apache.activemq</groupId>
 			<artifactId>activemq-broker</artifactId>
@@ -359,15 +270,12 @@
 			<artifactId>activemq-spring</artifactId>
 			<version>${activemq.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.xbean</groupId>
-			<artifactId>xbean-spring</artifactId>
-			<version>4.18</version>
-		</dependency>
+
+		<!-- database -->
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-core</artifactId>
-			<version>7.0.4</version>
+			<version>7.8.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.zaxxer</groupId>
@@ -381,46 +289,110 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<version>1.4.200</version>
-		</dependency>
-		<dependency>
 			<groupId>org.hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
-			<version>2.5.1</version>
+			<version>2.5.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.mariadb.jdbc</groupId>
 			<artifactId>mariadb-java-client</artifactId>
-			<version>2.7.0</version>
+			<version>2.7.2</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
-			<version>8.0.22</version>
-            <scope>provided</scope>
+			<version>8.0.24</version>
+			<scope>provided</scope>
 		</dependency>
-		<!-- removed proprietary oracle jar from build as it's not needed for our solution -->
-        <!-- <dependency>
+		<dependency>
 			<groupId>com.oracle.jdbc</groupId>
 			<artifactId>ojdbc8</artifactId>
 			<version>18.3.0.0</version>
 			<scope>provided</scope>
-		</dependency> -->
+		</dependency>
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>42.2.18</version>
+			<version>42.2.20</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.microsoft.sqlserver</groupId>
 			<artifactId>mssql-jdbc</artifactId>
-			<version>8.4.1.jre8</version>
+			<version>8.4.0.jre8</version>
 			<scope>provided</scope>
 		</dependency>
+
+		<!-- azure -->
+		<dependency>
+			<groupId>com.microsoft.azure</groupId>
+			<artifactId>applicationinsights-web</artifactId>
+			<version>2.6.3</version>
+		</dependency>
+		<dependency>
+			<groupId>com.microsoft.azure</groupId>
+			<artifactId>applicationinsights-logging-log4j2</artifactId>
+			<version>2.6.3</version>
+		</dependency>
+
+		<!-- client -->
+		<dependency>
+			<groupId>nl.clockwork.ebms</groupId>
+			<artifactId>ebms-core</artifactId>
+			<version>2.18.2</version>
+		</dependency>
+
+		<!-- test -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<version>${junit.jupiter.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<version>${junit.jupiter.version}</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>1.7.30</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.woodstox</groupId>
+				<artifactId>woodstox-core</artifactId>
+				<version>6.2.4</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-annotations</artifactId>
+				<version>2.12.2</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-core</artifactId>
+				<version>2.12.2</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-databind</artifactId>
+				<version>2.12.2</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.datatype</groupId>
+				<artifactId>jackson-datatype-jsr310</artifactId>
+				<version>2.12.2</version>
+			</dependency>		
+		</dependencies>
+	</dependencyManagement>
+	
 	<repositories>
 		<repository>
 			<id>jcenter</id>
@@ -440,8 +412,35 @@
 		</repository>
 	</repositories>
 	<build>
-		<finalName>${project.artifactId}</finalName>
-        <resources>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-clean-plugin</artifactId>
+					<version>3.1.0</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<version>3.0.0-M1</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-install-plugin</artifactId>
+					<version>3.0.0-M1</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>3.2.0</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-resources-plugin</artifactId>
+					<version>3.2.0</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>3.0.0-M5</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<resources>
 			<resource>
 				<filtering>false</filtering>
 				<directory>src/main/webapp</directory>
@@ -478,7 +477,29 @@
 			</testResource>
 		</testResources>
 		<plugins>
-            <plugin>
+			<plugin>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>3.0.0-M3</version>
+				<executions>
+					<execution>
+						<id>enforce-versions</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<requireMavenVersion>
+									<version>[3.2.5,)</version>
+								</requireMavenVersion>
+								<requireJavaVersion>
+									<version>[1.8,)</version>
+								</requireJavaVersion>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>versions-maven-plugin</artifactId>
 				<version>2.8.1</version>
@@ -524,8 +545,6 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<inherited>true</inherited>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.8.1</version>
 				<configuration>
@@ -537,13 +556,20 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.2.3</version>
+				<version>3.2.4</version>
 				<configuration>
 					<transformers>
 						<transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
-							<resource>ECLIPSEF.RSA</resource>
+							<resources>
+								<resource>ECLIPSEF.RSA</resource>
+								<resource>MSFTSIG.RSA</resource>
+								<resource>MANIFEST.MF</resource>
+								<resource>notice.txt</resource>
+								<resource>license.txt</resource>
+								<resource>LICENSE.txt</resource>
+								<resource>NOTICE.txt</resource>
+							</resources>
 						</transformer>
 						<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 							<mainClass>nl.clockwork.ebms.admin.Main</mainClass>
@@ -558,6 +584,26 @@
 							<resource>META-INF/cxf/bus-extensions.txt</resource>
 						</transformer>
 					</transformers>
+					<artifactSet>
+						<excludes>
+							<exclude>org.projectlombok:lombok</exclude>
+							<exclude>com.zaxxer:HikariCP-java7</exclude>
+							<exclude>com.h2database:h2</exclude>
+							<exclude>org.apache.geronimo.specs:geronimo-jta_1.1_spec</exclude>
+						</excludes>
+					</artifactSet>
+					<filters>
+						<filter>
+							<artifact>*:*</artifact>
+							<excludes>
+								<exclude>META-INF/*.SF</exclude>
+								<exclude>META-INF/*.DSA</exclude>
+								<exclude>META-INF/*.RSA</exclude>
+								<exclude>META-INF/LICENSE</exclude>
+								<exclude>module-info.class</exclude>
+							</excludes>
+						</filter>
+					</filters>
 				</configuration>
 				<executions>
 					<execution>
@@ -584,22 +630,22 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-report-plugin</artifactId>
-				<version>2.22.2</version>
+				<version>3.0.0-M5</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
-				<version>3.9.0</version>
+				<version>3.9.1</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jxr-plugin</artifactId>
-				<version>3.0.0</version>
+				<version>3.1.1</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>3.1.1</version>
+				<version>3.1.2</version>
 				<configuration>
 					<detail>true</detail>
 					<enableFilesSummary>true</enableFilesSummary>
@@ -620,7 +666,7 @@
 			<plugin>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
-				<version>4.0.4</version>
+				<version>4.2.3</version>
 				<configuration>
 					<spotbugsXmlOutputDirectory>${basedir}/target</spotbugsXmlOutputDirectory>
 					<xmlOutput>true</xmlOutput>
@@ -641,7 +687,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
-				<version>3.13.0</version>
+				<version>3.14.0</version>
 				<configuration>
 					<linkXref>true</linkXref>
 					<targetJdk>${jdk.version}</targetJdk>
@@ -694,7 +740,7 @@
 			<plugin>
 				<groupId>org.owasp</groupId>
 				<artifactId>dependency-check-maven</artifactId>
-				<version>5.3.2</version>
+				<version>6.1.6</version>
 				<reportSets>
 					<reportSet>
 						<reports>
@@ -705,7 +751,16 @@
 			</plugin>
 		</plugins>
 	</reporting>
-    
-    
-    
+	<distributionManagement>
+		<repository>
+			<id>release.repo</id>
+			<name>Release repository</name>
+			<url>${release.repo.url}</url>
+		</repository>
+		<snapshotRepository>
+			<id>snapshot.repo</id>
+			<name>Snapshot repository</name>
+			<url>${snapshot.repo.url}</url>
+		</snapshotRepository>
+	</distributionManagement>
 </project>

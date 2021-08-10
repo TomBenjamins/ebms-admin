@@ -176,7 +176,7 @@ public class DBClean implements SystemInterface
 		catch (Exception e)
 		{
 			e.printStackTrace();
-			transactionManager.rollback(status);
+		    transactionManager.rollback(status);
 		}
 	}
 
@@ -195,7 +195,7 @@ public class DBClean implements SystemInterface
 			catch (Exception e)
 			{
 			    e.printStackTrace();
-				transactionManager.rollback(status);
+			    transactionManager.rollback(status);
 			}
 		}
 		else

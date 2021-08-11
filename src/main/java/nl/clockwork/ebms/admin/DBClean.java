@@ -25,6 +25,10 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.sql.DataSource;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
@@ -35,6 +39,8 @@ import org.beryx.textio.TextIO;
 import org.beryx.textio.TextIoFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.querydsl.sql.SQLExpressions;
@@ -52,8 +58,6 @@ import nl.clockwork.ebms.querydsl.model.QDeliveryTask;
 import nl.clockwork.ebms.querydsl.model.QEbmsAttachment;
 import nl.clockwork.ebms.querydsl.model.QEbmsMessage;
 import nl.clockwork.ebms.querydsl.model.QMessageEvent;
-
-import javax.sql.DataSource;
 
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @RequiredArgsConstructor
@@ -262,27 +266,60 @@ public class DBClean implements SystemInterface
 
 	private void cleanMessages(Instant dateFrom)
 	{
-		val selectMessageIdsByPersistTime = SQLExpressions.select(messageTable.messageId).from(messageTable).where(messageTable.persistTime.loe(dateFrom));
-
-		var result = queryFactory.delete(deliveryLogTable).where(deliveryLogTable.messageId.in(selectMessageIdsByPersistTime)).execute();
+		//val selectMessageIdsByPersistTime = SQLExpressions.select(messageTable.messageId).from(messageTable).where(messageTable.persistTime.loe(dateFrom));
+		
+		List<String> ids = queryFactory.select(messageTable.messageId).from(messageTable).where(messageTable.persistTime.loe(dateFrom)).fetch();
+		
+		var result = queryFactory.delete(deliveryLogTable).where(deliveryLogTable.messageId.in(ids)).execute();
 		println(result + " deliveryLogs deleted");
 
-		result = queryFactory.delete(deliveryTaskTable).where(deliveryTaskTable.messageId.in(selectMessageIdsByPersistTime)).execute();
+		result = queryFactory.delete(deliveryTaskTable).where(deliveryTaskTable.messageId.in(ids)).execute();
 		println(result + " deliveryTasks deleted");
 
-		result = queryFactory.delete(messageEventTable).where(messageEventTable.messageId.in(selectMessageIdsByPersistTime)).execute();
+		result = queryFactory.delete(messageEventTable).where(messageEventTable.messageId.in(ids)).execute();
 		println(result + " messageEvents deleted");
 
 		if (alternativeAttachmentImplementation())
 		{
-			result = jdbcTemplate.update("delete from ebms_attachment where ebms_message_id in "
-					+ "(select id from ebms_message where persist_time <= ?)", new java.sql.Date(dateFrom.toEpochMilli()));
+		    SqlParameterSource parameters = new MapSqlParameterSource("ids", ids);
+		    result = jdbcTemplate.update("delete from ebms_attachment where ebms_message_id in "
+					+ "(:ids)", parameters);
 		} else {
-			result = queryFactory.delete(attachmentTable).where(attachmentTable.messageId.in(selectMessageIdsByPersistTime)).execute();
+			result = queryFactory.delete(attachmentTable).where(attachmentTable.messageId.in(ids)).execute();
 		}
 		println(result + " attachments deleted");
 
 		result = queryFactory.delete(messageTable).where(messageTable.persistTime.loe(dateFrom)).execute();
 		println(result + " messages deleted");
 	}
+	
+	private void defensiveDelete(List<String> ids ,String tableString /*, TODO query as lambda */){
+	    int deleteBlockSize = 4000;//TODO make this configurable?
+        
+	    List<String> localCopy = ids.stream().collect(Collectors.toList());
+	    
+        if (ids.size() == 0) {
+            println("no "+tableString+" objects to delete");
+        } else {
+            List<String> idsBlock = null;
+            int stopIndex = Math.min(deleteBlockSize, ids.size());
+            int nrOfRowsDeleted = 0;
+            do {
+                
+                idsBlock = localCopy.subList(0, stopIndex);
+                if (idsBlock.size() > 0) {
+                    nrOfRowsDeleted += 0;//TODO execute lambda here 
+
+                    /*
+                        TODO execute lambdas which return number of deleted items
+                    */
+                    // corresponding entries in ids list will be cleared
+                    idsBlock.clear();
+                    stopIndex = Math.min(deleteBlockSize, localCopy.size());
+                }
+            } while (localCopy.size() > 0);
+            println(nrOfRowsDeleted +" "+tableString+ "rows deleted");
+        }
+	}
+	
 }

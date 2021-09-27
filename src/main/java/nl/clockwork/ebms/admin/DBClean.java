@@ -246,14 +246,15 @@ public class DBClean implements SystemInterface
 			e.printStackTrace();
 		};
 		return vendor.equalsIgnoreCase("mysql") || 
-		       vendor.equalsIgnoreCase("microsoft sql server") || 
-		       vendor.equalsIgnoreCase("mariadb");
+		       vendor.equalsIgnoreCase("microsoft sql server") ||
+				vendor.equalsIgnoreCase("h2") ||
+				vendor.equalsIgnoreCase("mariadb");
 	}
 
 	private void cleanCPA(String cpaId)
 	{
 	    val ids = queryFactory.select(messageTable.messageId).from(messageTable).where(messageTable.cpaId.eq(cpaId)).fetch();
-	    
+
 		Function<List<String>, Long> query = idList -> queryFactory.delete(deliveryLogTable).where(deliveryLogTable.messageId.in(idList)).execute();
 		defensiveDelete(ids, "deliveryLogs", query);
 		
@@ -265,11 +266,15 @@ public class DBClean implements SystemInterface
 
 		if (alternativeAttachmentImplementation())
 		{
+			MapSqlParameterSource parameterSource = new MapSqlParameterSource();
+			parameterSource.addValue("cpaId", cpaId);
+			List<Integer> idsInteger = jdbcTemplate.queryForList("select id from ebms_message where cpa_id = ?", new Object[]{cpaId} , Integer.class);
+
 	        query = idList -> 
             {
-                SqlParameterSource parameters = new MapSqlParameterSource("ids", idList);
+                SqlParameterSource parameters = new MapSqlParameterSource("idsInteger", idsInteger);
                 return (long)jdbcTemplate.update("delete from ebms_attachment where ebms_message_id in "
-                + "(:ids)", parameters);
+                + "(:idsInteger)", parameters);
             };
 		} else {
 			query = idList -> queryFactory.delete(attachmentTable).where(attachmentTable.messageId.in(idList)).execute();

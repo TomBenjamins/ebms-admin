@@ -24,7 +24,7 @@
 	<groupId>nl.lostlemon.ebms.admin</groupId>
 	<artifactId>ebms-admin</artifactId>
 	<packaging>jar</packaging>
-	<version>2.18.3.0.LL-SNAPSHOT</version>
+	<version>BK-2178-SNAPSHOT</version>
 	<name>EbMS Admin (LL implementation)</name>
 	<description></description>
 	<url>https://github.com/eluinstra/ebms-admin</url>

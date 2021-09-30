@@ -18,6 +18,7 @@ package nl.clockwork.ebms.admin;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -27,6 +28,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -42,6 +44,7 @@ import org.beryx.textio.TextIoFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -62,8 +65,8 @@ import nl.clockwork.ebms.querydsl.model.QMessageEvent;
 
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @RequiredArgsConstructor
-public class DBClean implements SystemInterface
-{
+public class DBClean<T extends Serializable> implements SystemInterface {
+
 	private static DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 	TextIO textIO = TextIoFactory.getTextIO();
 
@@ -115,8 +118,8 @@ public class DBClean implements SystemInterface
 		val queryFactory = context.getBean(SQLQueryFactory.class);
 		val transactionManager = context.getBean("dataSourceTransactionManager",PlatformTransactionManager.class);
 		val dataSource = context.getBean(DataSource.class);
-		val jdbctemplate =  new JdbcTemplate(dataSource);
-		return new DBClean(queryFactory,transactionManager, jdbctemplate);
+		val namedParameterjdbctemplate = new NamedParameterJdbcTemplate(dataSource);
+		return new DBClean(queryFactory, transactionManager, namedParameterjdbctemplate);
 	}
 
 	@NonNull
@@ -124,7 +127,7 @@ public class DBClean implements SystemInterface
 	@NonNull
 	PlatformTransactionManager transactionManager;
 	@NonNull
-	JdbcTemplate jdbcTemplate;
+	NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
 	BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 	QCpa cpaTable = QCpa.cpa1;
@@ -133,7 +136,7 @@ public class DBClean implements SystemInterface
 	QMessageEvent messageEventTable = QMessageEvent.ebmsMessageEvent;
 	QDeliveryTask deliveryTaskTable = QDeliveryTask.deliveryTask;
 	QDeliveryLog deliveryLogTable = QDeliveryLog.deliveryLog;
-	
+
 	private void execute(final CommandLine cmd) throws Exception
 	{
 		switch(cmd.getOptionValue("cmd",""))
@@ -176,7 +179,7 @@ public class DBClean implements SystemInterface
 			}
 			else
 				println("CPA " + cpaId + " not found!");
-			
+
 			transactionManager.commit(status);
 		}
 		catch (Exception e)
@@ -188,7 +191,7 @@ public class DBClean implements SystemInterface
 
 	private void executeCleanMessages(CommandLine cmd) throws IOException
 	{
-		val dateFrom = Objects.nonNull(cmd.getOptionValue("retentionDays")) ? createDateFromRetentionDays(cmd.getOptionValue("retentionDays")) 
+		val dateFrom = Objects.nonNull(cmd.getOptionValue("retentionDays")) ? createDateFromRetentionDays(cmd.getOptionValue("retentionDays"))
 		                                                                    : createDateFrom(cmd.getOptionValue("dateFrom"));
 		if (dateFrom != null)
 		{
@@ -210,7 +213,7 @@ public class DBClean implements SystemInterface
 			println("Unable to parse date " + cmd.getOptionValue("dateFrom"));
 		}
 	}
-	
+
 	private static Instant createDateFromRetentionDays(String retentionDaysString)
     {
         try
@@ -223,7 +226,7 @@ public class DBClean implements SystemInterface
             return null;
         }
     }
-	
+
 	private static Instant createDateFrom(String s)
 	{
 		try
@@ -239,13 +242,13 @@ public class DBClean implements SystemInterface
 
 	private boolean alternativeAttachmentImplementation() {
 		var vendor = "";
-		try(Connection connection = jdbcTemplate.getDataSource().getConnection())
+		try (Connection connection = namedParameterJdbcTemplate.getJdbcTemplate().getDataSource().getConnection())
 		{
 			vendor = connection.getMetaData().getDatabaseProductName();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		};
-		return vendor.equalsIgnoreCase("mysql") || 
+		return vendor.equalsIgnoreCase("mysql") ||
 		       vendor.equalsIgnoreCase("microsoft sql server") ||
 				vendor.equalsIgnoreCase("h2") ||
 				vendor.equalsIgnoreCase("mariadb");
@@ -253,86 +256,125 @@ public class DBClean implements SystemInterface
 
 	private void cleanCPA(String cpaId)
 	{
+/*
 	    val ids = queryFactory.select(messageTable.messageId).from(messageTable).where(messageTable.cpaId.eq(cpaId)).fetch();
 
 		Function<List<String>, Long> query = idList -> queryFactory.delete(deliveryLogTable).where(deliveryLogTable.messageId.in(idList)).execute();
 		defensiveDelete(ids, "deliveryLogs", query);
-		
+
 		query = idList -> queryFactory.delete(deliveryTaskTable).where(deliveryTaskTable.messageId.in(ids)).execute();
 		defensiveDelete(ids, "deliveryTasks", query);
 
 		query = idList -> queryFactory.delete(messageEventTable).where(messageEventTable.messageId.in(ids)).execute();
 		defensiveDelete(ids, "messageEvents", query);
 
-		if (alternativeAttachmentImplementation())
-		{
+		if (alternativeAttachmentImplementation()) {
 			MapSqlParameterSource parameterSource = new MapSqlParameterSource();
 			parameterSource.addValue("cpaId", cpaId);
-			List<Integer> idsInteger = jdbcTemplate.queryForList("select id from ebms_message where cpa_id = ?", new Object[]{cpaId} , Integer.class);
+			List<Integer> idsInteger = namedParameterJdbcTemplate.getJdbcTemplate().queryForList("select id from ebms_message where cpa_id = ?", new Object[]{cpaId}, Integer.class);
 
-	        query = idList -> 
-            {
-                SqlParameterSource parameters = new MapSqlParameterSource("idsInteger", idsInteger);
-                return (long)jdbcTemplate.update("delete from ebms_attachment where ebms_message_id in "
-                + "(:idsInteger)", parameters);
-            };
+			query = idList ->
+			{
+				SqlParameterSource parameters = new MapSqlParameterSource("idsInteger", idsInteger);
+				return (long) namedParameterJdbcTemplate.update("delete from ebms_attachment where ebms_message_id in (:idsInteger)", parameters);
+			};
 		} else {
 			query = idList -> queryFactory.delete(attachmentTable).where(attachmentTable.messageId.in(idList)).execute();
 		}
 		defensiveDelete(ids, "attachments", query);
-		
+
 		query = idList -> (long) queryFactory.delete(messageTable).where(messageTable.cpaId.eq(cpaId)).execute();
 		defensiveDelete(ids, "messages", query);
 
 		println("delete cpa " + cpaId + " in ebms-admin to delete it from the cache!!!");
-	}
 
-	private void cleanMessages(Instant dateFrom)
-	{
+*/	}
+
+
+
+	private long cleanMessages(Instant dateFrom) {
+		long result = 0;
 		val ids = queryFactory.select(messageTable.messageId).from(messageTable).where(messageTable.persistTime.loe(dateFrom)).fetch();
-		
-		Function<List<String>, Long> query = idList -> queryFactory.delete(deliveryLogTable).where(deliveryLogTable.messageId.in(idList)).execute();
-		defensiveDelete(ids, "deliveryLogs", query);
 
-		query = idList -> queryFactory.delete(deliveryTaskTable).where(deliveryTaskTable.messageId.in(idList)).execute();
-		defensiveDelete(ids, "deliveryTasks", query);
-		
-		query = idList -> queryFactory.delete(messageEventTable).where(messageEventTable.messageId.in(idList)).execute();
-		defensiveDelete(ids, "messageEvents", query);
-		
-		if (alternativeAttachmentImplementation())
-		{
-		    query = idList -> 
-		            {
-		            SqlParameterSource parameters = new MapSqlParameterSource("ids", idList);
-		            return (long)jdbcTemplate.update("delete from ebms_attachment where ebms_message_id in "
-					+ "(:ids)", parameters);
-		            };
+		if (ids.size() == 0) {
+			println("no messages to delete");
 		} else {
-			query = idList -> queryFactory.delete(attachmentTable).where(attachmentTable.messageId.in(idList)).execute();
+			Function<List<T>, Long> query = idList -> queryFactory.delete(deliveryLogTable).where(deliveryLogTable.messageId.in((List<String>) idList)).execute();
+			defensiveDelete((List <T>) ids, "deliveryLogs", query);
+
+			query = idList -> queryFactory.delete(deliveryTaskTable).where(deliveryTaskTable.messageId.in((List<String>) idList)).execute();
+			defensiveDelete((List<T>) ids, "deliveryTasks", query);
+
+			query = idList -> queryFactory.delete(messageEventTable).where(messageEventTable.messageId.in((List<String>) idList)).execute();
+			defensiveDelete((List<T>) ids, "messageEvents", query);
+
+			if (alternativeAttachmentImplementation()) {
+				SqlParameterSource parameterListString = new MapSqlParameterSource("idsString", ids);
+				List<Integer> idsInteger = namedParameterJdbcTemplate.queryForList("select id from ebms_message where message_id in (:idsString)", parameterListString, Integer.class);
+
+				SqlParameterSource parameterListInteger = new MapSqlParameterSource("idsInteger", idsInteger);
+				query = idList -> Long.valueOf(namedParameterJdbcTemplate.update("delete from ebms_attachment where ebms_message_id in (:idsInteger)", parameterListInteger));
+				defensiveDelete((List<T>) idsInteger, "attachments", query);
+//				defensiveDeleteAttachmentsAlternativeImplementation(idsInteger, 4000);
+			} else {
+				query = idList -> queryFactory.delete(attachmentTable).where(attachmentTable.messageId.in((List<String>) idList)).execute();
+				defensiveDelete((List<T>) ids, "attachments", query);
+			}
+			query = idList -> queryFactory.delete(messageTable).where(messageTable.messageId.in((List<String>) idList)).execute();
+			result = defensiveDelete((List<T>) ids, "messages", query);
 		}
-		defensiveDelete(ids, "attachments", query);
-		
-		var result = queryFactory.delete(messageTable).where(messageTable.persistTime.loe(dateFrom)).execute();
-		println(result + " messages deleted");
+		return result;
 	}
-	
-	private void defensiveDelete(List<String> ids, String tableString, Function<List<String>,Long> query){
+/*
+	private int defensiveDeleteAttachmentsAlternativeImplementation(List<Integer> idsInteger, int deleteBlockSize ) {
+		int totalRowsDeleted = 0;
+		List<Integer> localCopy = new ArrayList<>(idsInteger);
+
+		if (idsInteger.size() > 0) {
+			println("no attachment objects to delete");
+
+		} else {
+
+			List<Integer> idsBlock = null;
+			int stopIndex = Math.min(deleteBlockSize, idsInteger.size());
+			int nrOfRowsDeleted = 0;
+			do {
+				idsBlock = localCopy.subList(0, stopIndex);
+				if (idsBlock.size() > 0) {
+					SqlParameterSource parameters = new MapSqlParameterSource("idsBlock", idsBlock);
+					long nrDeletedInBlockSize = namedParameterJdbcTemplate.update("delete from ebms_attachment where ebms_message_id in (:idsBlock)", parameters);
+					nrOfRowsDeleted += nrDeletedInBlockSize;
+					println("defensive delete attachments block of size " + nrDeletedInBlockSize + " deleted");
+					// corresponding entries in ids list will be cleared
+					idsBlock.clear();
+					stopIndex = Math.min(deleteBlockSize, localCopy.size());
+				}
+			} while (localCopy.size() > 0);
+			println(nrOfRowsDeleted + " attachment rows deleted");
+
+		}
+		return totalRowsDeleted;
+	}
+*/
+	private int defensiveDelete(List<T> ids, String tableString, Function<List<T>,Long> query){
 	    int deleteBlockSize = 4000;//TODO make this configurable?
-        
-	    List<String> localCopy = new ArrayList<>(ids);
+		int nrOfRowsDeleted = 0;
+
+	    List<T> localCopy = new ArrayList<>(ids);
 	    
         if (ids.size() == 0) {
             println("no "+tableString+" objects to delete");
         } else {
-            List<String> idsBlock = null;
+            List<T> idsBlock = null;
             int stopIndex = Math.min(deleteBlockSize, ids.size());
-            int nrOfRowsDeleted = 0;
             do {
                 
                 idsBlock = localCopy.subList(0, stopIndex);
                 if (idsBlock.size() > 0) {
-                    nrOfRowsDeleted += query.apply(idsBlock);
+                    long nrDeletedInBlockDefensive = query.apply(idsBlock);
+                    println("defensiveDelete block size " + nrDeletedInBlockDefensive + " of " + tableString + " deleted");
+                    nrOfRowsDeleted += nrDeletedInBlockDefensive;
+                    println("DBClean.defensiveDelete idsBlock.size() = " + idsBlock.size());
                     
                     // corresponding entries in ids list will be cleared
                     idsBlock.clear();
@@ -341,6 +383,7 @@ public class DBClean implements SystemInterface
             } while (localCopy.size() > 0);
             println(nrOfRowsDeleted +" "+tableString+ "rows deleted");
         }
+        return nrOfRowsDeleted;
 	}
 	
 }

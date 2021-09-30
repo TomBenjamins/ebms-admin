@@ -250,8 +250,8 @@ public class DBClean<T extends Serializable> implements SystemInterface {
 		};
 		return vendor.equalsIgnoreCase("mysql") ||
 		       vendor.equalsIgnoreCase("microsoft sql server") ||
-				vendor.equalsIgnoreCase("h2") ||
-				vendor.equalsIgnoreCase("mariadb");
+               vendor.equalsIgnoreCase("mariadb") ||
+               vendor.equalsIgnoreCase("h2");
 	}
 
 	private void cleanCPA(String cpaId)
@@ -292,8 +292,7 @@ public class DBClean<T extends Serializable> implements SystemInterface {
 
 
 
-	private long cleanMessages(Instant dateFrom) {
-		long result = 0;
+	private void cleanMessages(Instant dateFrom) {
 		val ids = queryFactory.select(messageTable.messageId).from(messageTable).where(messageTable.persistTime.loe(dateFrom)).fetch();
 
 		if (ids.size() == 0) {
@@ -312,8 +311,11 @@ public class DBClean<T extends Serializable> implements SystemInterface {
 				SqlParameterSource parameterListString = new MapSqlParameterSource("idsString", ids);
 				List<Integer> idsInteger = namedParameterJdbcTemplate.queryForList("select id from ebms_message where message_id in (:idsString)", parameterListString, Integer.class);
 
-				SqlParameterSource parameterListInteger = new MapSqlParameterSource("idsInteger", idsInteger);
-				query = idList -> Long.valueOf(namedParameterJdbcTemplate.update("delete from ebms_attachment where ebms_message_id in (:idsInteger)", parameterListInteger));
+				query = idList ->
+				    {
+					SqlParameterSource parameterListInteger = new MapSqlParameterSource("idsInteger", idsInteger);
+					return (long) namedParameterJdbcTemplate.update("delete from ebms_attachment where ebms_message_id in (:idsInteger)", parameterListInteger);
+				};
 				defensiveDelete((List<T>) idsInteger, "attachments", query);
 //				defensiveDeleteAttachmentsAlternativeImplementation(idsInteger, 4000);
 			} else {
@@ -321,9 +323,8 @@ public class DBClean<T extends Serializable> implements SystemInterface {
 				defensiveDelete((List<T>) ids, "attachments", query);
 			}
 			query = idList -> queryFactory.delete(messageTable).where(messageTable.messageId.in((List<String>) idList)).execute();
-			result = defensiveDelete((List<T>) ids, "messages", query);
+			defensiveDelete((List<T>) ids, "messages", query);
 		}
-		return result;
 	}
 /*
 	private int defensiveDeleteAttachmentsAlternativeImplementation(List<Integer> idsInteger, int deleteBlockSize ) {
@@ -356,7 +357,7 @@ public class DBClean<T extends Serializable> implements SystemInterface {
 		return totalRowsDeleted;
 	}
 */
-	private int defensiveDelete(List<T> ids, String tableString, Function<List<T>,Long> query){
+	private void defensiveDelete(List<T> ids, String tableString, Function<List<T>,Long> query){
 	    int deleteBlockSize = 4000;//TODO make this configurable?
 		int nrOfRowsDeleted = 0;
 
@@ -383,7 +384,6 @@ public class DBClean<T extends Serializable> implements SystemInterface {
             } while (localCopy.size() > 0);
             println(nrOfRowsDeleted +" "+tableString+ "rows deleted");
         }
-        return nrOfRowsDeleted;
 	}
 	
 }

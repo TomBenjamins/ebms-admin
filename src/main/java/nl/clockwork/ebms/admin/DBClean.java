@@ -18,7 +18,6 @@ package nl.clockwork.ebms.admin;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -28,7 +27,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -42,7 +40,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.beryx.textio.TextIO;
 import org.beryx.textio.TextIoFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -65,7 +62,7 @@ import nl.clockwork.ebms.querydsl.model.QMessageEvent;
 
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @RequiredArgsConstructor
-public class DBClean<T extends Serializable> implements SystemInterface {
+public class DBClean implements SystemInterface {
 
 	private static DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 	TextIO textIO = TextIoFactory.getTextIO();
@@ -256,7 +253,7 @@ public class DBClean<T extends Serializable> implements SystemInterface {
 
 	private void cleanCPA(String cpaId)
 	{
-/*
+
 	    val ids = queryFactory.select(messageTable.messageId).from(messageTable).where(messageTable.cpaId.eq(cpaId)).fetch();
 
 		Function<List<String>, Long> query = idList -> queryFactory.delete(deliveryLogTable).where(deliveryLogTable.messageId.in(idList)).execute();
@@ -288,9 +285,7 @@ public class DBClean<T extends Serializable> implements SystemInterface {
 
 		println("delete cpa " + cpaId + " in ebms-admin to delete it from the cache!!!");
 
-*/	}
-
-
+	}
 
 	private void cleanMessages(Instant dateFrom) {
 		val ids = queryFactory.select(messageTable.messageId).from(messageTable).where(messageTable.persistTime.loe(dateFrom)).fetch();
@@ -298,91 +293,61 @@ public class DBClean<T extends Serializable> implements SystemInterface {
 		if (ids.size() == 0) {
 			println("no messages to delete");
 		} else {
-			Function<List<T>, Long> query = idList -> queryFactory.delete(deliveryLogTable).where(deliveryLogTable.messageId.in((List<String>) idList)).execute();
-			defensiveDelete((List <T>) ids, "deliveryLogs", query);
+			Function<List<String>, Long> query = idList -> queryFactory.delete(deliveryLogTable).where(deliveryLogTable.messageId.in(idList)).execute();
+			defensiveDelete(ids, "deliveryLogs", query);
 
-			query = idList -> queryFactory.delete(deliveryTaskTable).where(deliveryTaskTable.messageId.in((List<String>) idList)).execute();
-			defensiveDelete((List<T>) ids, "deliveryTasks", query);
+			query = idList -> queryFactory.delete(deliveryTaskTable).where(deliveryTaskTable.messageId.in(idList)).execute();
+			defensiveDelete(ids, "deliveryTasks", query);
 
-			query = idList -> queryFactory.delete(messageEventTable).where(messageEventTable.messageId.in((List<String>) idList)).execute();
-			defensiveDelete((List<T>) ids, "messageEvents", query);
+			query = idList -> queryFactory.delete(messageEventTable).where(messageEventTable.messageId.in(idList)).execute();
+			defensiveDelete(ids, "messageEvents", query);
 
 			if (alternativeAttachmentImplementation()) {
-				SqlParameterSource parameterListString = new MapSqlParameterSource("idsString", ids);
-				List<Integer> idsInteger = namedParameterJdbcTemplate.queryForList("select id from ebms_message where message_id in (:idsString)", parameterListString, Integer.class);
-
-				query = idList ->
+			    query = idList ->
 				    {
-					SqlParameterSource parameterListInteger = new MapSqlParameterSource("idsInteger", idsInteger);
-					return (long) namedParameterJdbcTemplate.update("delete from ebms_attachment where ebms_message_id in (:idsInteger)", parameterListInteger);
+				        SqlParameterSource parameterListMessageIds = new MapSqlParameterSource("messageIds", idList);
+		                List<String> ebmsMessageIds = namedParameterJdbcTemplate.queryForList("select id from ebms_message where message_id in (:messageIds)", parameterListMessageIds, String.class);
+				        SqlParameterSource parameterListEmbsMessageIds = new MapSqlParameterSource("embsMessageIds", ebmsMessageIds);
+					return (long) namedParameterJdbcTemplate.update("delete from ebms_attachment where ebms_message_id in (:embsMessageIds)", parameterListEmbsMessageIds);
 				};
-				defensiveDelete((List<T>) idsInteger, "attachments", query);
-//				defensiveDeleteAttachmentsAlternativeImplementation(idsInteger, 4000);
+				defensiveDelete(ids, "attachments", query);
 			} else {
 				query = idList -> queryFactory.delete(attachmentTable).where(attachmentTable.messageId.in((List<String>) idList)).execute();
-				defensiveDelete((List<T>) ids, "attachments", query);
+				defensiveDelete(ids, "attachments", query);
 			}
 			query = idList -> queryFactory.delete(messageTable).where(messageTable.messageId.in((List<String>) idList)).execute();
-			defensiveDelete((List<T>) ids, "messages", query);
+			defensiveDelete(ids, "messages", query);
 		}
 	}
-/*
-	private int defensiveDeleteAttachmentsAlternativeImplementation(List<Integer> idsInteger, int deleteBlockSize ) {
-		int totalRowsDeleted = 0;
-		List<Integer> localCopy = new ArrayList<>(idsInteger);
 
-		if (idsInteger.size() > 0) {
-			println("no attachment objects to delete");
-
-		} else {
-
-			List<Integer> idsBlock = null;
-			int stopIndex = Math.min(deleteBlockSize, idsInteger.size());
-			int nrOfRowsDeleted = 0;
-			do {
-				idsBlock = localCopy.subList(0, stopIndex);
-				if (idsBlock.size() > 0) {
-					SqlParameterSource parameters = new MapSqlParameterSource("idsBlock", idsBlock);
-					long nrDeletedInBlockSize = namedParameterJdbcTemplate.update("delete from ebms_attachment where ebms_message_id in (:idsBlock)", parameters);
-					nrOfRowsDeleted += nrDeletedInBlockSize;
-					println("defensive delete attachments block of size " + nrDeletedInBlockSize + " deleted");
-					// corresponding entries in ids list will be cleared
-					idsBlock.clear();
-					stopIndex = Math.min(deleteBlockSize, localCopy.size());
-				}
-			} while (localCopy.size() > 0);
-			println(nrOfRowsDeleted + " attachment rows deleted");
-
-		}
-		return totalRowsDeleted;
-	}
-*/
-	private void defensiveDelete(List<T> ids, String tableString, Function<List<T>,Long> query){
+	private void defensiveDelete(List<String> ids, String tableString, Function<List<String>,Long> query){
 	    int deleteBlockSize = 4000;//TODO make this configurable?
 		int nrOfRowsDeleted = 0;
-
-	    List<T> localCopy = new ArrayList<>(ids);
+		println("Starting defensive delete of rows in "+tableString+ "....");
+	    List<String> localCopy = new ArrayList<>(ids);
 	    
         if (ids.size() == 0) {
-            println("no "+tableString+" objects to delete");
+            println("    no rows in "+tableString+" to delete");
         } else {
-            List<T> idsBlock = null;
+            List<String> idsBlock = null;
             int stopIndex = Math.min(deleteBlockSize, ids.size());
             do {
                 
                 idsBlock = localCopy.subList(0, stopIndex);
                 if (idsBlock.size() > 0) {
                     long nrDeletedInBlockDefensive = query.apply(idsBlock);
-                    println("defensiveDelete block size " + nrDeletedInBlockDefensive + " of " + tableString + " deleted");
+                    if(nrDeletedInBlockDefensive > 0) {
+                        println("    "+nrDeletedInBlockDefensive + " of rows in " + tableString + " deleted");
+                    }
+                    
                     nrOfRowsDeleted += nrDeletedInBlockDefensive;
-                    println("DBClean.defensiveDelete idsBlock.size() = " + idsBlock.size());
                     
                     // corresponding entries in ids list will be cleared
                     idsBlock.clear();
                     stopIndex = Math.min(deleteBlockSize, localCopy.size());
                 }
             } while (localCopy.size() > 0);
-            println(nrOfRowsDeleted +" "+tableString+ "rows deleted");
+            println("A total number of "+ nrOfRowsDeleted +" "+tableString+ " rows deleted");
         }
 	}
 	

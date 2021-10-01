@@ -22,9 +22,11 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -215,8 +217,7 @@ public class DBClean implements SystemInterface {
     {
         try
         {
-            val date = StringUtils.isEmpty(retentionDaysString) ? null : LocalDate.now().minusDays(Integer.parseInt(retentionDaysString));
-            return date.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            return StringUtils.isEmpty(retentionDaysString) ? null : Instant.now().minus(Period.ofDays(Integer.parseInt(retentionDaysString)));
         }
         catch (NumberFormatException e)
         {

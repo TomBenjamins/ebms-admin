@@ -9,4 +9,4 @@ voor linux:
 docker run --rm --network="host" -e "SOAP_PORT=9089" -e "HEALTH_PORT=9017" -it --volume d:/tools/mule-standalone-3.9.4/conf:/conf --volume d:/tools/ebms-admin-ll/test/cert:/cert --volume d:/tools/ebms-admin-ll/test/logs_docker:/logs registry-priv.lostlemon.nl/broker/ebms-admin
 
 voor windows
-docker run --rm -p 3306:3306 -p 9017:9017 -p 9089:9089 -p 9876:9876 -it -e "SOAP_PORT=9089" -e "HEALTH_PORT=9017" --volume d:/tools/mule-standalone-3.9.4/conf:/conf  --volume d:/tools/ebms-admin-ll/test/cert:/cert --volume d:/tools/ebms-admin-ll/test/logs_docker:/logs registry-priv.lostlemon.nl/broker/ebms-admin
+docker run --rm -p 3306:3306 -p 9017:9017 -p 9089:9089 -p 9876:9876 -it -e "SOAP_PORT=9089" -e "HEALTH_PORT=9017" --volume d:/tools/ebms-admin-ll/test/conf:/conf  --volume d:/tools/ebms-admin-ll/test/cert:/cert --volume d:/tools/ebms-admin-ll/test/logs_docker:/logs registry-priv.lostlemon.nl/broker/ebms-admin

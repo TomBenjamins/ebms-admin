@@ -13,6 +13,7 @@ ENV PROXY_PORT=9876
 ENV WORKDIR /home/$USER
 ENV JAVA_ARGS "-Dlog4j.configurationFile=$LOG4J2"
 ENV START=./start.sh
+ENV DBCLEAN=dbClean.sh
 ENV CONFIGDIR /conf/
 
 ENV TZ Europe/Amsterdam
@@ -25,7 +26,10 @@ WORKDIR $WORKDIR
 EXPOSE 1099 1999 
 
 COPY target/${EBMS_ADMIN}.jar .
-ADD resources/docker/${LOG4J2} ${LOG4J2}
+COPY resources/docker/${LOG4J2} ${LOG4J2}
+
+COPY resources/docker/${DBCLEAN} ./${DBCLEAN}
+RUN chmod u+x ./$DBCLEAN 
 
 #RUN addgroup -S $USER && \
 #adduser -S $USER -G $USER && \

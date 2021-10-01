@@ -1,0 +1,2 @@
+* 3 * * * /resources/docker/dbClean.sh
+

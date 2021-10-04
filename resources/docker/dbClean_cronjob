@@ -1,3 +1,3 @@
-* * * * * ./dbClean.sh > /proc/1/fd/1 2> /proc/1/fd/2
+* * * * * /home/ebms/dbClean.sh > /proc/1/fd/1 2> /proc/1/fd/2
 # empty line is required 
 

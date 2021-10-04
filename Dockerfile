@@ -14,6 +14,7 @@ ENV WORKDIR /home/$USER
 ENV JAVA_ARGS "-Dlog4j.configurationFile=$LOG4J2"
 ENV START=./start.sh
 ENV DBCLEAN=dbClean.sh
+ENV DBCLEAN_CRONJOB=dbClean_cronjob
 ENV CONFIGDIR /conf/
 
 ENV TZ Europe/Amsterdam
@@ -31,6 +32,8 @@ COPY resources/docker/${LOG4J2} ${LOG4J2}
 COPY resources/docker/${DBCLEAN} ./${DBCLEAN}
 RUN chmod u+x ./$DBCLEAN 
 
+COPY resources/docker/${DBCLEAN_CRONJOB} /var/spool/cron/crontabs/root
+
 #RUN addgroup -S $USER && \
 #adduser -S $USER -G $USER && \
 
@@ -41,5 +44,7 @@ chmod u+x $START
 #chown -R $USER:$USER $WORKDIR
 # USER $USER:$USER
 
-CMD ${START}
+ENTRYPOINT ${START}
+
+CMD ["crond", "-f", "-d", "8"]
 

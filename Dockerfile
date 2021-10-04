@@ -32,7 +32,7 @@ COPY resources/docker/${LOG4J2} ${LOG4J2}
 COPY resources/docker/${DBCLEAN} ./${DBCLEAN}
 RUN chmod u+x ./$DBCLEAN 
 
-COPY resources/docker/${DBCLEAN_CRONJOB} /var/spool/cron/crontabs/root
+COPY resources/docker/${DBCLEAN_CRONJOB} /etc/crontabs/root
 
 #RUN addgroup -S $USER && \
 #adduser -S $USER -G $USER && \

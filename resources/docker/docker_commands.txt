@@ -9,4 +9,4 @@ voor linux:
 docker-compose up -d
 
 voor windows
-docker-compose up -d
+docker-compose up -f docker-compose.win32.yml -d 

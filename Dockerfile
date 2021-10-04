@@ -44,7 +44,5 @@ chmod u+x $START
 #chown -R $USER:$USER $WORKDIR
 # USER $USER:$USER
 
-ENTRYPOINT ${START}
-
-CMD ["crond", "-f", "-d", "8"]
+CMD ${START} && crond -f -d 8
 

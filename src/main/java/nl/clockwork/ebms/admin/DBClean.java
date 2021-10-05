@@ -138,7 +138,8 @@ public class DBClean implements SystemInterface {
 
 	private void execute(final CommandLine cmd) throws Exception
 	{
-		switch(cmd.getOptionValue("cmd",""))
+		println("DBClean cleanup scripts started @ "+Instant.now());
+	    switch(cmd.getOptionValue("cmd",""))
 		{
 			case("cpa"):
 				validateCleanCPA(cmd);

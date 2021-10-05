@@ -38,7 +38,7 @@ COPY resources/docker/${DBCLEAN_CRONJOB} /etc/crontabs/root
 #adduser -S $USER -G $USER && \
 
 RUN printf "#!/bin/sh\n" > $START && \
-printf "crond -f -d 8 -F /conf/crond.log \n" >> $START && \
+printf "crond -f -d 8 -L /logs/crond.log \n" >> $START && \
 printf "java ${JAVA_ARGS} -cp ${EBMS_ADMIN}.jar nl.clockwork.ebms.admin.StartEmbedded -soap -headless -health -jmx true -port \$SOAP_PORT -healthPort \$HEALTH_PORT -configDir \$CONFIGDIR  \$@\n" >> $START && \
 chmod u+x $START 
 # && \

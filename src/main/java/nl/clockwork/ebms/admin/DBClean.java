@@ -28,7 +28,6 @@ import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -359,7 +358,7 @@ public class DBClean implements SystemInterface {
 	
 	@Override
 	public void println(String s) {
-	    if(StringUtils.isNotEmpty(System.getProperty(LOG4J_CONFIGURATION_FILE))) {
+	    if(hasLog4jConfig()) {
 	        log.info(s);
 	    } else {
 	        SystemInterface.super.println(s);
@@ -368,15 +367,19 @@ public class DBClean implements SystemInterface {
 	
 	@Override
 	public void printWarn(String s) {
-	    if(StringUtils.isNotEmpty(System.getProperty(LOG4J_CONFIGURATION_FILE))) {
+	    if(hasLog4jConfig()) {
             log.warn(s);
         } else {
             SystemInterface.super.printWarn(s);
         }
 	}
+
+    private static boolean hasLog4jConfig() {
+        return StringUtils.isNotEmpty(System.getProperty(LOG4J_CONFIGURATION_FILE));
+    }
 	
 	private static void printErr(Throwable t) {
-	    if(StringUtils.isNotEmpty(System.getProperty(LOG4J_CONFIGURATION_FILE))) {
+	    if(hasLog4jConfig()) {
 	        log.error("ERROR", t);
 	    } else {
 	        t.printStackTrace();
@@ -384,7 +387,7 @@ public class DBClean implements SystemInterface {
 	}
 	
 	private static void printStatic(String s) {
-	    if(StringUtils.isNotEmpty(System.getProperty(LOG4J_CONFIGURATION_FILE))) {
+	    if(hasLog4jConfig()) {
             log.info(s);
         } else {
             System.out.println(s);

@@ -15,6 +15,8 @@
  */
 package nl.clockwork.ebms.admin;
 
+import static nl.clockwork.ebms.admin.Constants.DATE_FORMAT_YMD;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -55,6 +57,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.var;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import nl.clockwork.ebms.querydsl.model.QCpa;
 import nl.clockwork.ebms.querydsl.model.QDeliveryLog;
 import nl.clockwork.ebms.querydsl.model.QDeliveryTask;
@@ -64,9 +67,11 @@ import nl.clockwork.ebms.querydsl.model.QMessageEvent;
 
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @RequiredArgsConstructor
+@Slf4j
 public class DBClean implements SystemInterface {
 
-	private static DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+	private static final String LOG4J_CONFIGURATION_FILE = "log4j.configurationFile";
+    private static DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT_YMD);
 	TextIO textIO = TextIoFactory.getTextIO();
 
 	public static void main(String[] args) throws Exception
@@ -109,7 +114,7 @@ public class DBClean implements SystemInterface {
 	{
 		val configDir = cmd.getOptionValue("configDir","");
 		System.setProperty("ebms.configDir",configDir);
-		System.out.println("Using config directory: " + configDir);
+		printStatic("Using config directory: " + configDir);
 	}
 
 	private static DBClean createDBClean(AnnotationConfigApplicationContext context)
@@ -138,7 +143,6 @@ public class DBClean implements SystemInterface {
 
 	private void execute(final CommandLine cmd) throws Exception
 	{
-		println("DBClean cleanup scripts started @ "+Instant.now());
 	    switch(cmd.getOptionValue("cmd",""))
 		{
 			case("cpa"):
@@ -149,7 +153,7 @@ public class DBClean implements SystemInterface {
 				executeCleanMessages(cmd);
 				break;
 			default:
-				println(cmd.getOptionValue("cmd") + " not recognized");
+				printWarn(cmd.getOptionValue("cmd") + " not recognized");
 		}
 	}
 
@@ -157,7 +161,7 @@ public class DBClean implements SystemInterface {
 	{
 		if (!cmd.hasOption("cpaId"))
 		{
-			println("Option cpaId missing");
+			printWarn("Option cpaId missing");
 			return false;
 		}
 		return true;
@@ -184,7 +188,7 @@ public class DBClean implements SystemInterface {
 		}
 		catch (Exception e)
 		{
-			e.printStackTrace();
+			printErr(e);
 		    transactionManager.rollback(status);
 		}
 	}
@@ -204,13 +208,13 @@ public class DBClean implements SystemInterface {
 			}
 			catch (Exception e)
 			{
-			    e.printStackTrace();
+			    printErr(e);
 			    transactionManager.rollback(status);
 			}
 		}
 		else
 		{
-			println("Unable to parse date " + cmd.getOptionValue("dateFrom"));
+			printWarn("Unable to parse date " + cmd.getOptionValue("dateFrom"));
 		}
 	}
 
@@ -245,7 +249,7 @@ public class DBClean implements SystemInterface {
 		{
 			vendor = connection.getMetaData().getDatabaseProductName();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			printErr(e);
 		};
 		return vendor.equalsIgnoreCase("mysql") ||
 		       vendor.equalsIgnoreCase("microsoft sql server") ||
@@ -353,4 +357,37 @@ public class DBClean implements SystemInterface {
         }
 	}
 	
+	@Override
+	public void println(String s) {
+	    if(StringUtils.isNotEmpty(System.getProperty(LOG4J_CONFIGURATION_FILE))) {
+	        log.info(s);
+	    } else {
+	        SystemInterface.super.println(s);
+	    }
+	}
+	
+	@Override
+	public void printWarn(String s) {
+	    if(StringUtils.isNotEmpty(System.getProperty(LOG4J_CONFIGURATION_FILE))) {
+            log.warn(s);
+        } else {
+            SystemInterface.super.printWarn(s);
+        }
+	}
+	
+	private static void printErr(Throwable t) {
+	    if(StringUtils.isNotEmpty(System.getProperty(LOG4J_CONFIGURATION_FILE))) {
+	        log.error("ERROR", t);
+	    } else {
+	        t.printStackTrace();
+	    }
+	}
+	
+	private static void printStatic(String s) {
+	    if(StringUtils.isNotEmpty(System.getProperty(LOG4J_CONFIGURATION_FILE))) {
+            log.info(s);
+        } else {
+            System.out.println(s);
+        }
+	} 
 }

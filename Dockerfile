@@ -2,7 +2,7 @@ FROM openjdk:8-jre-alpine
 
 RUN apk add --no-cache tzdata
 
-ARG EBMS_VERSION=2.18.0
+ARG EBMS_VERSION=2.18.3
 ARG EBMS_ADMIN=ebms-admin
 ARG LOG4J2=log4j2.xml
 ARG LOG4J2_DBCLEAN=log4j2.dbClean.xml
@@ -40,7 +40,7 @@ COPY resources/docker/${DBCLEAN_CRONJOB} /etc/crontabs/root
 #adduser -S $USER -G $USER && \
 
 RUN printf "#!/bin/sh\n" > $START && \
-printf "crond -L /logs/crond.log \n" >> $START && \
+printf "crond \n" >> $START && \
 printf "java ${JAVA_ARGS} -cp ${EBMS_ADMIN}.jar nl.clockwork.ebms.admin.StartEmbedded -soap -headless -health -jmx true -port \$SOAP_PORT -healthPort \$HEALTH_PORT -configDir \$CONFIGDIR  \$@\n" >> $START && \
 chmod u+x $START 
 # && \

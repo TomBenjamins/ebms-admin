@@ -45,7 +45,7 @@
 			</roles>
 			<timezone>1</timezone>
 		</developer>
-	    <developer>
+	<developer>
             <id>richardm</id>
             <name>Richard Morsch</name>
             <email>richardm@lostlemon.nl</email>
@@ -71,7 +71,7 @@
 	<scm>
 		<url>https://gitlab.lostlemon.nl/broker/ebms-admin</url>
         <connection>scm:git:git@gitlab-priv.lostlemon.nl:broker/embs-admin.git</connection>
-	    <tag>HEAD</tag>
+	<tag>HEAD</tag>
     </scm>
 	<organization>
 		<name>Clockwork</name>
@@ -103,7 +103,7 @@
 		<snapshot.repo.url>http://sourceforge.net</snapshot.repo.url>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<dependency.locations.enabled>false</dependency.locations.enabled>
-	    <dockerTagId>${CI_COMMIT_REF_NAME}</dockerTagId>
+	<dockerTagId>${CI_COMMIT_REF_NAME}</dockerTagId>
 		<ll.ebms-core.version>2.18.4.0.LL-SNAPSHOT</ll.ebms-core.version>
 	</properties>
 	<profiles>
@@ -160,7 +160,8 @@
             <properties>
                 <dockerTagId>${project.version}</dockerTagId>
             </properties>
-        </profile>
+	
+</profile>
     </profiles>
 	<dependencies>
 		<dependency>
@@ -321,6 +322,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-frontend-jaxrs</artifactId>
+			<version>${cxf.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
 			<artifactId>cxf-rt-features-logging</artifactId>
 			<version>${cxf.version}</version>
 		</dependency>
@@ -330,6 +336,36 @@
 			<version>${cxf.version}</version>
 		</dependency>
 
+<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-transports-http-jetty</artifactId>
+			<version>${cxf.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.jaxrs</groupId>
+			<artifactId>jackson-jaxrs-json-provider</artifactId>
+			<version>2.12.4</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jdk8</artifactId>
+			<version>2.12.4</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+			<version>2.12.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-rs-service-description-openapi-v3</artifactId>
+			<version>${cxf.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.webjars</groupId>
+			<artifactId>swagger-ui</artifactId>
+			<version>3.51.2</version>
+		</dependency>
 		<!-- activemq -->
 		<dependency>
 			<groupId>org.apache.activemq</groupId>
@@ -391,7 +427,7 @@
 			<artifactId>ojdbc8</artifactId>
 			<version>18.3.0.0</version>
 			<scope>provided</scope>
-		</dependency>
+</dependency>
 -->		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
@@ -493,7 +529,7 @@
 		</repository>
 	</repositories>
 	<build>
-        <finalName>${project.artifactId}</finalName>
+		<finalName>${project.artifactId}</finalName>
 		<pluginManagement>
 			<plugins>
 				<plugin>

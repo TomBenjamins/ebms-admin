@@ -16,3 +16,4 @@ logs
 
 .idea
 *.iml
+docker-compose.win32.yml

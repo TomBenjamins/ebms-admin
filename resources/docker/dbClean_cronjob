@@ -1,0 +1,3 @@
+* 3 * * * /home/ebms/dbClean.sh 
+# empty line is required 
+

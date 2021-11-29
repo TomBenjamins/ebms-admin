@@ -1,0 +1,20 @@
+include:
+  - project: 'lostlemon/remote-ci'
+    ref: master
+    file: '/public/v4/gitlab-maven-small.yml'
+
+variables:
+  MAVEN_PHASE: deploy
+  JAVA_VERSION: 8
+  REGISTRY_USER: $CI_REGISTRY_USER
+  REGISTRY_PASSWORD: $CI_REGISTRY_PASSWORD
+  REGISTRY_URL: $CI_REGISTRY
+  DOCKER_BUILD: 'yes'
+  DOCKER_BUILD_GOAL: docker:build docker:push
+
+Deploy Test:
+  extends:
+    - .deploy
+  variables:
+    SSH_USER: deploy-ebms-test
+    SSH_SERVER: dh01-dev.priv.lostlemon.nl

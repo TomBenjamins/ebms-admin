@@ -18,8 +18,8 @@ package nl.clockwork.ebms.admin;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Properties;
 
@@ -38,19 +38,18 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.hsqldb.persist.HsqlProperties;
-import org.hsqldb.server.EbMSServerProperties;
 import org.hsqldb.server.ServerAcl.AclFormatException;
-import org.hsqldb.server.ServerConfiguration;
-import org.hsqldb.server.ServerConstants;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+
+import com.microsoft.applicationinsights.web.internal.ApplicationInsightsServletContextListener;
 
 import lombok.AccessLevel;
 import lombok.val;
 import lombok.experimental.FieldDefaults;
 import nl.clockwork.ebms.admin.web.configuration.JdbcURL;
+import nl.clockwork.ebms.security.KeyStoreType;
 import nl.clockwork.ebms.server.servlet.EbMSServlet;
 import nl.clockwork.ebms.util.LoggingUtils;
 
@@ -75,6 +74,7 @@ public class StartEmbedded extends Start
 	private static final String HTTPS_REQUIRE_CLIENT_AUTHENTICATION_PROPERTY = "https.requireClientAuthentication";
 	private static final String HTTPS_CLIENT_CERTIFICATE_HEADER_PROPERTY = "https.clientCertificateHeader";
 	private static final String HTTPS_CLIENT_CERTIFICATE_AUTHENTICATION_PROPERTY = "https.clientCertificateAuthentication";
+	private static final String KEYSTORES_TYPE_PROPERTY = "keystores.type";
 	private static final String KEYSTORE_TYPE_PROPERTY = "keystore.type";
 	private static final String KEYSTORE_PATH_PROPERTY = "keystore.path";
 	private static final String KEYSTORE_PASSWORD_PROPERTY = "keystore.password";
@@ -87,7 +87,11 @@ public class StartEmbedded extends Start
 	private static final String EBMS_JDBC_URL_PROPERTY = "ebms.jdbc.url";
 	private static final String LOGGING_MDC_PROPERTY = "logging.mdc";
 	private static final String LOGGING_MDC_AUDIT_PROPERTY = "logging.mdc.audit";
-
+	private static final String AZURE_AZURE_INSIGHTS_PROPERTY = "ebms.applicationInsights";
+	private static final String AZURE_VAULTURI_PROPERTY = "azure.keyvault.uri";
+	private static final String AZURE_VAULTTENNANT_ID_PROPERTY = "azure.keyvault.tennantid";
+	private static final String AZURE_VAULTCLIENT_ID_PROPERTY = "azure.keyvault.clientid";
+	private static final String AZURE_VAULTCLIENT_SECRET_PROPERTY = "azure.keyvault.client.secret";
 	private static final String TRUE = "true";
 	private static final String FALSE = "false";
 	private static final String DEFAULT_EBMS_PORT = "8888";
@@ -208,29 +212,19 @@ public class StartEmbedded extends Start
 
 	public org.hsqldb.server.Server startHSQLDBServer(CommandLine cmd, JdbcURL jdbcURL) throws IOException, AclFormatException, URISyntaxException, ParseException
 	{
-		val options = new ArrayList<>();
-		options.add("-database.0");
-		options.add((cmd.hasOption(HSQLDB_DIR_OPTION) ? "file:" + cmd.getOptionValue(HSQLDB_DIR_OPTION) : "file:" + DEFAULT_HSQLDB_DIR) + "/" + jdbcURL.getDatabase());
-		options.add("-dbname.0");
-		options.add(jdbcURL.getDatabase());
-		if (jdbcURL.getPort() != null)
-		{
-			options.add("-port");
-			options.add(jdbcURL.getPort().toString());
-		}
-		val argProps = HsqlProperties.argArrayToProps(options.toArray(new String[0]),"server");
-		val props = new EbMSServerProperties(ServerConstants.SC_PROTOCOL_HSQL);
-		props.addProperties(argProps);
-		ServerConfiguration.translateDefaultDatabaseProperty(props);
-		ServerConfiguration.translateDefaultNoSystemExitProperty(props);
-		ServerConfiguration.translateAddressProperty(props);
 		val server = new org.hsqldb.server.Server();
-		server.setProperties(props);
+		server.setDatabasePath(0, String.format("file:%s/%s", cmd.getOptionValue("hsqldbDir", "hsqldb"), jdbcURL.getDatabase()));
+		server.setDatabaseName(0,  jdbcURL.getDatabase());
+		if (jdbcURL.getPort() != null) {
+			server.setPort(jdbcURL.getPort());			
+		}
+		server.setSilent(true);
+		server.setNoSystemExit(true);
 		server.start();
 		return server;
 	}
 
-	private void initEbMSServer(Properties properties, Server server) throws MalformedURLException, IOException
+	private void initEbMSServer(Properties properties, Server server) throws GeneralSecurityException, IOException
 	{
 		
 		val connector = TRUE.equals(properties.getProperty(EBMS_SSL_PROPERTY)) ? 
@@ -254,37 +248,38 @@ public class StartEmbedded extends Start
 		return result;
 	}
 
-	private SslContextFactory.Server createEbMSSslContextFactory(Properties properties) throws MalformedURLException, IOException
+	private SslContextFactory.Server createEbMSSslContextFactory(Properties properties) throws GeneralSecurityException, IOException
 	{
 		val result = new SslContextFactory.Server();
-		addEbMSKeyStore(properties,result);
+		EbMSKeyStore ebMSKeyStore = "AZURE".equals(properties.getProperty(KEYSTORES_TYPE_PROPERTY,""))
+				? EbMSKeyStore.of(
+						properties.getProperty(AZURE_VAULTURI_PROPERTY),
+						properties.getProperty(AZURE_VAULTTENNANT_ID_PROPERTY),
+						properties.getProperty(AZURE_VAULTCLIENT_ID_PROPERTY),
+						properties.getProperty(AZURE_VAULTCLIENT_SECRET_PROPERTY),
+						properties.getProperty(KEYSTORE_DEFAULT_ALIAS_PROPERTY))
+				: EbMSKeyStore.of(
+						KeyStoreType.valueOf(properties.getProperty(KEYSTORE_TYPE_PROPERTY)),
+						properties.getProperty(KEYSTORE_PATH_PROPERTY),
+						properties.getProperty(KEYSTORE_PASSWORD_PROPERTY),
+						properties.getProperty(KEYSTORE_DEFAULT_ALIAS_PROPERTY));
+		addEbMSKeyStore(properties,result,ebMSKeyStore);
 		if (TRUE.equals(properties.getProperty(HTTPS_REQUIRE_CLIENT_AUTHENTICATION_PROPERTY)))
 			addEbMSTrustStore(properties,result);
 		result.setExcludeCipherSuites();
 		return result;
 	}
 
-	private void addEbMSKeyStore(Properties properties, SslContextFactory.Server sslContextFactory) throws MalformedURLException, IOException
+	private void addEbMSKeyStore(Properties properties, SslContextFactory.Server sslContextFactory, EbMSKeyStore ebMSKeyStore) throws GeneralSecurityException, IOException
 	{
-		val keyStore = getResource(properties.getProperty(KEYSTORE_PATH_PROPERTY));
-		if (keyStore != null && keyStore.exists())
-		{
-			if (!StringUtils.isEmpty(properties.getProperty(HTTPS_PROTOCOLS_PROPERTY)))
-				sslContextFactory.setIncludeProtocols(StringUtils.stripAll(StringUtils.split(properties.getProperty(HTTPS_PROTOCOLS_PROPERTY),',')));
-			if (!StringUtils.isEmpty(properties.getProperty(HTTPS_CIPHER_SUITES_PROPERTY)))
-				sslContextFactory.setIncludeCipherSuites(StringUtils.stripAll(StringUtils.split(properties.getProperty(HTTPS_CIPHER_SUITES_PROPERTY),',')));
-			sslContextFactory.setKeyStoreType(properties.getProperty(KEYSTORE_TYPE_PROPERTY));
-			sslContextFactory.setKeyStoreResource(keyStore);
-			sslContextFactory.setKeyStorePassword(properties.getProperty(KEYSTORE_PASSWORD_PROPERTY));
-			String certAlias = properties.getProperty(KEYSTORE_DEFAULT_ALIAS_PROPERTY);
-			if (StringUtils.isNotEmpty(certAlias))
-				sslContextFactory.setCertAlias(certAlias);
-		}
-		else
-		{
-			println("EbMS Service not available: keyStore " + properties.getProperty(KEYSTORE_PATH_PROPERTY) + " not found!");
-			exit(1);
-		}
+		if (!StringUtils.isEmpty(properties.getProperty(HTTPS_PROTOCOLS_PROPERTY)))
+			sslContextFactory.setIncludeProtocols(StringUtils.stripAll(StringUtils.split(properties.getProperty(HTTPS_PROTOCOLS_PROPERTY),',')));
+		if (!StringUtils.isEmpty(properties.getProperty(HTTPS_CIPHER_SUITES_PROPERTY)))
+			sslContextFactory.setIncludeCipherSuites(StringUtils.stripAll(StringUtils.split(properties.getProperty(HTTPS_CIPHER_SUITES_PROPERTY),',')));
+		sslContextFactory.setKeyStore(ebMSKeyStore.getKeyStore());
+		sslContextFactory.setKeyStorePassword(ebMSKeyStore.getPassword());
+		if (StringUtils.isNotEmpty(ebMSKeyStore.getDefaultAlias()))
+			sslContextFactory.setCertAlias(ebMSKeyStore.getDefaultAlias());
 	}
 
 	private void addEbMSTrustStore(Properties properties, SslContextFactory.Server sslContextFactory) throws MalformedURLException, IOException
@@ -321,6 +316,11 @@ public class StartEmbedded extends Start
 		val result = new ServletContextHandler(ServletContextHandler.SESSIONS);
 		result.setVirtualHosts(new String[] {"@" + EBMS_CONNECTOR_NAME});
 		result.setContextPath("/");
+		if (TRUE.equals(properties.getProperty(AZURE_AZURE_INSIGHTS_PROPERTY)))
+		{
+			result.addFilter(createWebRequestTrackingFilterHolder(),"/*",EnumSet.allOf(DispatcherType.class));
+			result.addEventListener(new ApplicationInsightsServletContextListener());
+		}
 		if (LoggingUtils.Status.ENABLED.name().equals(properties.getProperty(LOGGING_MDC_PROPERTY)) && LoggingUtils.Status.ENABLED.name().equals(properties.getProperty(LOGGING_MDC_AUDIT_PROPERTY)))
 			result.addFilter(createRemoteAddressMDCFilterHolder(),"/*",EnumSet.allOf(DispatcherType.class));
 		if (!StringUtils.isEmpty(properties.getProperty(EBMS_QUERIES_PER_SECOND_PROPERTY)))

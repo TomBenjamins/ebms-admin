@@ -1,0 +1,12 @@
+
+docker build -t registry-priv.lostlemon.nl/broker/ebms-admin .
+
+docker tag registry-priv.lostlemon.nl/broker/ebms-admin registry-priv.lostlemon.nl/broker/ebms-admin(:TAG) 
+
+docker push registry-priv.lostlemon.nl/broker/ebms-admin(:TAG)
+
+voor linux:
+docker-compose up -d
+
+voor windows
+docker-compose up -f docker-compose.win32.yml -d 

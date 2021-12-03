@@ -4,6 +4,7 @@ services:
     restart: unless-stopped
     # CONFIGURE THIS
     image: registry-priv.lostlemon.nl/broker/ebms-admin(:###OPTIONAL_TAGNAME###)
+    mem_limit: 1024M
     ports:
       - 9017:9017
       - 9089:9089

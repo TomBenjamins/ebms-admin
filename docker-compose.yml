@@ -3,6 +3,7 @@ services:
   ebms-admin-test:
     restart: unless-stopped
     image: registry-priv.lostlemon.nl/broker/ebms-admin:${TAGID}
+    mem_limit: 1024M
     ports:
       - 9017:9017
       - 9089:9089
